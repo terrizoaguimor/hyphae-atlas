@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL ?? "http://localhost:3000"),
   title: "Hyphae Atlas — Evidence before assertion",
-  description: "A version-aware migration, capability, and product-claim agent powered by Sanity Context and Grok.",
+  description: "A model-agnostic, version-aware migration, capability, and product-claim agent powered by Sanity Context.",
   openGraph: {title: "Hyphae Atlas", description: "Ask what is true. See why it applies.", type: "website"},
 };
 

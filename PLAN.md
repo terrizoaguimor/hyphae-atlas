@@ -8,7 +8,7 @@
 
 ## 1. Resumen ejecutivo
 
-Hyphae Atlas será un agente consciente de versiones y evidencias que responderá preguntas críticas sobre compatibilidad, capacidades y afirmaciones técnicas de Hyphae. El agente utilizará una Knowledge Base servida exclusivamente mediante Sanity Context MCP como autoridad documental. Grok/xAI ejecutará el razonamiento y las llamadas a herramientas.
+Hyphae Atlas es un agente consciente de versiones y evidencias que responde preguntas críticas sobre compatibilidad, capacidades y afirmaciones técnicas de Hyphae. El backend controla Sanity Context MCP como autoridad documental y permite elegir xAI, OpenAI, Anthropic o un endpoint OpenAI-compatible para selección y síntesis.
 
 La propuesta no presenta Hyphae como trabajo nuevo. Hyphae, su documentación, contratos y evidencias son contenido preexistente. El trabajo creado para el challenge será el modelo de contenido en Sanity, el pipeline de importación, la Knowledge Base, las reglas de autoridad, el agente, su interfaz, el corpus de evaluación y la documentación de la entrega.
 
@@ -27,7 +27,7 @@ Una búsqueda textual puede localizar palabras, pero no decide correctamente qu�
 - El proyecto contiene `.env.example`, `.env` y `.gitignore`.
 - `.env` está protegido con permisos `0600`.
 - El dataset contiene 33 documentos Atlas namespaced y 13 documentos no-Atlas preservados.
-- La API de xAI responde correctamente y Grok 4.6 completó las evaluaciones live.
+- La API de xAI responde correctamente y Grok 4.6 completó la baseline del adapter provider-agnostic.
 - Sanity Context MCP está activo en Knowledge Base mode con 21 entradas.
 - Los tokens Viewer, Editor/importer y Deploy Studio fueron creados y validados por separado.
 - La Knowledge Base, el endpoint MCP, el Studio y el schema están desplegados.
@@ -100,10 +100,13 @@ Next.js UI
    │ HTTPS
    ▼
 API server-side `/api/agent`
-   ├── validación y límites
-   ├── prompt por modo
-   ├── Grok/xAI
-   └── normalización del reporte
+   ├── validación, cuotas y cancelación
+   ├── initial_context directo
+   ├── modelo configurado selecciona paths
+   ├── validación exacta contra outline
+   ├── knowledge_base_read directo
+   ├── modelo configurado sintetiza JSON
+   └── grounding y Evidence Resolver
           │
           ▼
 Sanity Context MCP (Knowledge Base mode)
@@ -120,16 +123,16 @@ Hyphae Knowledge Base
 
 ### Arquitectura MCP primaria
 
-Se probará primero la conexión MCP remota administrada por xAI:
+Atlas posee el loop MCP; ningún proveedor recibe el token Context ni controla las tools. El modelo solo selecciona entre paths del outline y sintetiza a partir del contenido ya recuperado.
 
-- `server_url`: `SANITY_CONTEXT_MCP_URL`
-- autorización: `SANITY_CONTEXT_TOKEN`
-- allowlist estricta: `initial_context`, `knowledge_base_read`
-- ejecución solo desde servidor
+### Proveedores
 
-### Fallback MCP
+- `xai`: Chat Completions compatible.
+- `openai`: Responses API.
+- `anthropic`: Messages API.
+- `openai-compatible`: endpoint HTTPS configurable.
 
-Si el transporte, la trazabilidad o la salida estructurada no son suficientemente fiables, el backend actuará como cliente MCP de Sanity y presentará wrappers de esas dos operaciones a Grok mediante function calling. El producto y el modelo de datos no cambiarán.
+El demo usa xAI, pero Context, trazas, grounding, replays y evaluación son independientes del proveedor.
 
 ### Extensión posterior
 
@@ -142,7 +145,7 @@ El MCP nativo de Hyphae podrá consultar las capacidades de una instancia activa
 - **UI:** React y CSS accesible; evitar una dependencia visual pesada para el MVP.
 - **CMS/modelado:** Sanity Studio y Content Lake.
 - **Conocimiento:** Sanity Context en Knowledge Base mode.
-- **Modelo:** Grok mediante xAI API.
+- **Modelo:** proveedor configurable (`xai`, `openai`, `anthropic`, `openai-compatible`); el demo usa Grok 4.6.
 - **Validación:** schemas TypeScript/Zod o equivalente para entrada y reporte.
 - **Despliegue preferido:** Vercel para la aplicación y hosting administrado de Sanity para Studio/Context.
 - **Gestión de paquetes:** se elegirá npm o pnpm después de comprobar qué está instalado; no se fijarán versiones sin consultar las versiones actuales.
@@ -839,8 +842,8 @@ Este documento es la autoridad de alcance para el MVP. Cualquier funcionalidad n
 
 - G0: credenciales Sanity/xAI, Studio desplegado, Knowledge Base construida y Context MCP live.
 - G1: skeleton, dependencias exactas, siete schemas e importador idempotente.
-- G2: 20 fuentes y 13 documentos estructurados importados; 20 entradas de Knowledge Base construidas.
-- G3: runtime Grok, remote MCP, contrato, guardrails y fallback preview.
+- G2: 20 fuentes y 13 documentos estructurados importados; 21 entradas de Knowledge Base construidas.
+- G3: loop MCP propio, providers intercambiables, contrato, grounding auditado, guardrails y fallback preview.
 - G4: interfaz responsive de tres modos.
 - G5: corpus gold estricto de 12 casos; 12/12 en una sola corrida con cobertura completa y cero afirmaciones prohibidas positivas.
 - G7 documental: README, atribución, arquitectura, guía Context, ledger y submission draft.

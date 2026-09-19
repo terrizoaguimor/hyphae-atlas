@@ -5,7 +5,7 @@ import path from "node:path";
 import {z} from "zod";
 import {runAtlasAgent} from "../src/agent/sanity-context";
 import {atlasQuerySchema} from "../src/agent/report-schema";
-import {XaiRequestError} from "../src/agent/xai";
+import {ModelProviderError} from "../src/agent/providers";
 import {findForbiddenAssertions} from "./polarity";
 
 const caseSchema = atlasQuerySchema.extend({
@@ -25,7 +25,7 @@ function selectedCases(cases: EvaluationCase[]): EvaluationCase[] {
 }
 
 function transient(error: unknown): boolean {
-  return error instanceof XaiRequestError && error.status === 429 || error instanceof DOMException && error.name === "TimeoutError" || error instanceof Error && /timed out|rate limit/i.test(error.message);
+  return error instanceof ModelProviderError && error.status === 429 || error instanceof DOMException && error.name === "TimeoutError" || error instanceof Error && /timed out|rate limit/i.test(error.message);
 }
 
 async function evaluate(item: EvaluationCase): Promise<CaseResult> {

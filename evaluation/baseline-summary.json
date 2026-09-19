@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "generatedAt": "2026-09-19T17:58:11.776Z",
+  "version": 4,
+  "generatedAt": "2026-09-19T22:02:31.248Z",
   "retrievalMode": "sanity-context-mcp",
   "knowledgeBase": {
     "publicId": "kbIPW9hgRO17",
@@ -23,7 +23,7 @@
     "findingGrounding": 1,
     "forbiddenAssertionCount": 0,
     "contextToolCompliance": 1,
-    "averageDurationMs": 86579,
+    "averageDurationMs": 96657,
     "singleUninterruptedRun": true
   },
   "criteria": [
@@ -35,5 +35,5 @@
     "No affirmative prohibited-language assertion in visible report fields",
     "Both required Context tools observed"
   ],
-  "historyNote": "Earlier evaluator iterations exposed timeout, polarity, field-size, and grounding-validation defects. Those runs are retained locally with timestamps and are not presented as the final baseline. After citation auditing, canonical alias resolution, sentence-bounded polarity, and applicability coverage were added, the final full run passed all 12 cases on their first attempt."
+  "historyNote": "Earlier evaluator iterations exposed timeout, polarity, field-size, and grounding-validation defects. Those runs are retained locally with timestamps and are not presented as the final baseline. Atlas then moved MCP ownership into its backend and added provider adapters for xAI, OpenAI, Anthropic, and OpenAI-compatible APIs. The final provider-agnostic full run passed all 12 cases on their first attempt using xAI as the configured synthesis provider."
 }

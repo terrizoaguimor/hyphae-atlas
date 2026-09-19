@@ -4,8 +4,9 @@ import {strict as assert} from "node:assert";
 import {readFile} from "node:fs/promises";
 import {BodyLimitError, BodyTimeoutError, readJsonBody} from "../src/security/body";
 import {acquireAgentSlot, consumeRateLimit} from "../src/security/rate-limit";
+import {combinedDeadline} from "../src/security/deadline";
 import {atlasReportSchema} from "../src/agent/report-schema";
-import {observedEntryPaths} from "../src/agent/context-audit";
+import {callContextTool, parseKnowledgeBaseOutline} from "../src/agent/context-client";
 import {resolveEvidence} from "../src/agent/evidence-resolver";
 import {containsAffirmativeTerm, findForbiddenAssertions} from "../evaluation/polarity";
 import {getReplay} from "../src/data/replays";
@@ -22,8 +23,25 @@ async function main() {
   assert.equal(consumeRateLimit("smoke", key, {limit: 1, windowMs: 60_000}).allowed, true);
   assert.equal(consumeRateLimit("smoke", key, {limit: 1, windowMs: 60_000}).allowed, false);
   const release = acquireAgentSlot(1); assert.ok(release); assert.equal(acquireAgentSlot(1), null); release(); const reacquired = acquireAgentSlot(1); assert.ok(reacquired); reacquired();
+  const deadline = combinedDeadline(new AbortController().signal, 20); const deadlineStarted = Date.now();
+  await assert.rejects(() => new Promise((_resolve, reject) => deadline.signal.addEventListener("abort", () => reject(deadline.signal.reason), {once: true})), (error: unknown) => error instanceof DOMException && error.name === "TimeoutError");
+  assert.ok(Date.now() - deadlineStarted < 500); deadline.cleanup();
 
-  assert.deepEqual(observedEntryPaths([{name: "knowledge_base_read", arguments: {path: "one"}}, {name: "knowledge_base_read", arguments: {paths: ["two"]}}, {name: "knowledge_base_read", arguments: {entryPaths: ["three"]}}]), ["one", "two", "three"]);
+  assert.deepEqual(parseKnowledgeBaseOutline("Knowledge base id: `kbExample123`\n\nalpha/one [core]\n  summary\nbeta/two\n  summary").paths, ["alpha/one", "beta/two"]);
+  const originalContextUrl = process.env.SANITY_CONTEXT_MCP_URL;
+  process.env.SANITY_CONTEXT_MCP_URL = "http://example.invalid/mcp";
+  await assert.rejects(() => callContextTool("initial_context", {}), /must use HTTPS/);
+  process.env.SANITY_CONTEXT_MCP_URL = originalContextUrl;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (_input, init) => new Promise<Response>((_resolve, reject) => {
+    const requestSignal = init?.signal;
+    if (requestSignal?.aborted) reject(requestSignal.reason);
+    else requestSignal?.addEventListener("abort", () => reject(requestSignal.reason), {once: true});
+  });
+  await assert.rejects(() => callContextTool("initial_context", {}, undefined, 20), (error: unknown) => error instanceof DOMException && error.name === "TimeoutError");
+  globalThis.fetch = async () => new Response(new ReadableStream({start(controller) {controller.enqueue(new TextEncoder().encode("{\"jsonrpc\":\"2.0\""));}}), {status: 200, headers: {"Content-Type": "application/json"}});
+  await assert.rejects(() => callContextTool("initial_context", {}, undefined, 20), (error: unknown) => error instanceof DOMException && error.name === "TimeoutError");
+  globalThis.fetch = originalFetch;
   assert.equal(containsAffirmativeTerm("Hyphae is a drop-in replacement", "drop-in replacement"), true);
   assert.equal(containsAffirmativeTerm("Hyphae is not a drop-in replacement", "drop-in replacement"), false);
   assert.equal(containsAffirmativeTerm("Hyphae is not universally SQL-compatible. Hyphae is a drop-in replacement.", "drop-in replacement"), true);
@@ -50,11 +68,11 @@ async function main() {
   }
 
   const example = await readFile(".env.example", "utf8");
-  for (const keyName of ["XAI_API_KEY", "SANITY_WRITE_TOKEN", "SANITY_DEPLOY_TOKEN", "SANITY_READ_TOKEN", "SANITY_CONTEXT_TOKEN"]) {
+  for (const keyName of ["XAI_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "MODEL_API_KEY", "SANITY_WRITE_TOKEN", "SANITY_DEPLOY_TOKEN", "SANITY_READ_TOKEN", "SANITY_CONTEXT_TOKEN"]) {
     const line = example.split("\n").find((item) => item.startsWith(`${keyName}=`));
     assert.equal(line, `${keyName}=`, `${keyName} must be empty in .env.example`);
   }
-  console.log(JSON.stringify({ok: true, checks: ["streaming-body-limit", "body-timeout", "json-body", "rate-limit", "concurrency-release", "tool-path-shapes", "claim-polarity", "applicability-polarity", "finding-grounding-schema", "forged-citation-rejection", "canonical-readme-resolution", "six-grounded-replays", "empty-secret-template"]}, null, 2));
+  console.log(JSON.stringify({ok: true, checks: ["streaming-body-limit", "body-timeout", "json-body", "rate-limit", "concurrency-release", "global-deadline", "context-outline-parse", "context-https", "context-timeout", "context-partial-timeout", "claim-polarity", "applicability-polarity", "finding-grounding-schema", "forged-citation-rejection", "canonical-readme-resolution", "six-grounded-replays", "empty-secret-template"]}, null, 2));
 }
 
 main().catch((error: unknown) => {console.error(error instanceof Error ? error.message : "Unknown security smoke error"); process.exitCode = 1;});

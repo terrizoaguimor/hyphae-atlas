@@ -2,11 +2,12 @@ import {NextResponse} from "next/server";
 import {ZodError} from "zod";
 import {runAtlasAgent, agentConfiguration} from "@/agent/sanity-context";
 import {atlasQuerySchema} from "@/agent/report-schema";
-import {XaiRequestError} from "@/agent/xai";
+import {ModelProviderError} from "@/agent/providers";
 import {readJsonBody, BodyJsonError, BodyLimitError, BodyTimeoutError} from "@/security/body";
 import {REQUEST_LIMITS} from "@/security/limits";
 import {acquireAgentSlot, clientIdentity, consumeRateLimit} from "@/security/rate-limit";
 import {publicError} from "@/security/redaction";
+import {combinedDeadline} from "@/security/deadline";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,18 +38,20 @@ export async function POST(request: Request) {
   if (!globalRate.allowed) return rateResponse(globalRate.resetAt);
   const release = acquireAgentSlot(REQUEST_LIMITS.maxConcurrentAgentRequests);
   if (!release) return NextResponse.json({error: "Atlas is already processing the maximum number of live reports. Use an instant replay or retry shortly."}, {status: 503, headers: {"Retry-After": "20"}});
+  const deadline = combinedDeadline(request.signal, 285_000);
 
   try {
-    const result = await runAtlasAgent(input, request.signal);
+    const result = await runAtlasAgent(input, deadline.signal);
     return NextResponse.json(result, {headers: {"Cache-Control": "no-store", "X-RateLimit-Remaining": String(clientRate.remaining)}});
   } catch (error: unknown) {
+    if (error instanceof DOMException && error.name === "TimeoutError") return NextResponse.json({error: "The live report exceeded its 285-second global deadline. Use an instant replay or narrow the question."}, {status: 504});
     if (error instanceof DOMException && error.name === "AbortError") return new NextResponse(null, {status: 499});
-    if (error instanceof XaiRequestError && error.status === 429) {
+    if (error instanceof ModelProviderError && error.status === 429) {
       const retryAfter = error.retryAfter && /^\d+$/.test(error.retryAfter) ? error.retryAfter : "60";
       console.warn("Atlas upstream rate limit:", publicError(error));
-      return NextResponse.json({error: "Grok is temporarily rate limited. Use an instant replay or retry shortly.", retryAfterSeconds: Number(retryAfter)}, {status: 429, headers: {"Retry-After": retryAfter}});
+      return NextResponse.json({error: `${error.provider} is temporarily rate limited. Use an instant replay or retry shortly.`, retryAfterSeconds: Number(retryAfter)}, {status: 429, headers: {"Retry-After": retryAfter}});
     }
     console.error("Atlas request failed:", publicError(error));
     return NextResponse.json({error: publicError(error)}, {status: 502});
-  } finally {release();}
+  } finally {deadline.cleanup(); release();}
 }

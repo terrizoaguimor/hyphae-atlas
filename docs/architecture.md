@@ -1,68 +1,99 @@
 # Architecture and trust boundaries
 
-## Runtime
+## Provider-agnostic runtime
 
 ```text
-Browser -> Next.js `/api/agent` -> Grok/xAI -> Sanity Context MCP -> Knowledge Base
+Browser
+  -> Next.js `/api/agent`
+  -> Atlas-owned agent loop
+       1. Sanity Context `initial_context`
+       2. configured model selects 1–8 exact outline paths
+       3. Atlas validates paths against the outline
+       4. Sanity Context `knowledge_base_read`
+       5. configured model synthesizes structured JSON
+       6. Atlas resolves and verifies every finding citation
+  -> Evidence report
 ```
 
-The browser sends only a bounded query object. API keys and Context credentials remain in the server process.
+Sanity Context and the MCP trace belong to Atlas, not to a model provider. Providers only need text generation with JSON-capable output. The same loop supports xAI, OpenAI, Anthropic, and HTTPS OpenAI-compatible Chat Completions endpoints.
+
+## Provider adapters
+
+`src/agent/providers/` exposes one `ModelProvider.generate()` contract. `MODEL_PROVIDER` selects:
+
+- `xai`: `XAI_API_KEY` + `XAI_MODEL`; OpenAI-compatible Chat Completions.
+- `openai`: `OPENAI_API_KEY` + `OPENAI_MODEL`; Responses API.
+- `anthropic`: `ANTHROPIC_API_KEY` + `ANTHROPIC_MODEL`; Messages API.
+- `openai-compatible`: `MODEL_API_KEY` + `MODEL_NAME` + HTTPS `MODEL_BASE_URL`.
+
+The hosted demo configures xAI, but self-hosters may choose another provider without changing Context, schemas, evaluation, trace, grounding, or UI. Visitors to the hosted demo never provide a key; BYOK happens through server environment variables when self-hosting.
 
 ## Retrieval modes
 
 ### Final: `sanity-context-mcp`
 
-Grok receives one remote MCP definition with an allowlist of `initial_context` and `knowledge_base_read`. The system prompt requires orientation through the outline before reading the smallest sufficient set of entries. Context remains read-only.
+Atlas calls the hosted read-only MCP itself. It obtains the live outline, validates model-selected paths against that exact outline, and reads the selected entries. The model never receives the Context token and cannot invent a callable path.
 
 ### Development: `sanity-dataset-preview`
 
-When Context URL/token are absent, the backend retrieves only the structured records for the selected mode from the Sanity dataset and includes them as bounded inline context. The UI displays a warning. This mode enables development but is not final challenge compliance.
+If Context is absent, the backend can use bounded structured records from the Sanity dataset as an explicitly labeled preview. Live mode is disabled in the UI until the health endpoint confirms Context is configured. Preview mode is not final challenge evidence.
 
-## Trust boundaries
+## Proof Path and audited grounding
 
-1. User input is validated with a strict schema and length limits.
-2. Retrieved content is explicitly treated as untrusted data.
-3. The model cannot change the source authority hierarchy.
-4. Tool access is closed to two read-only Knowledge Base tools.
-5. Model output is parsed and validated before returning to the browser.
-6. Error messages pass through secret redaction.
-7. An in-memory request window limits casual public abuse; production hosting should add a durable edge limiter if traffic requires it.
+A model source label does not establish grounding. The final report is accepted only when:
 
-## Failure behavior
+1. every finding contains a citation label;
+2. that exact normalized label appears in the text returned by Atlas's own `knowledge_base_read` call;
+3. the label resolves unambiguously through canonical Sanity titles, IDs, and relationships;
+4. each finding maps to at least one upstream `sourceDocument`.
 
-- Missing final Context credentials selects labeled preview mode.
-- Invalid input returns HTTP 400.
-- Oversized bodies return HTTP 413.
-- Rate-limit exhaustion returns HTTP 429.
-- Model, Context, parsing, or validation failures return a redacted HTTP 502.
-- Missing evidence should produce `unknown` or `unproven`, not a guessed answer.
+Basename matching is not authoritative. Duplicate names such as the four `README.md` paths resolve only through unique canonical titles/paths. Model-provided HTTP links are never rendered; only resolver-owned upstream URLs are clickable.
 
-## Optional extension
+Every resolved source includes path, public URL, commit, SHA-256, license, lifecycle, authority rank, and supported finding indexes.
 
-A read-only Hyphae Native MCP may later report capabilities of a controlled live instance. Sanity Context remains the documentation authority; the Native MCP would represent observed instance state. This extension is intentionally outside the MVP until the final Context path passes.
+## SHA-256 verification
 
-## Proof Path
+`POST /api/evidence/verify` never accepts an arbitrary URL. It accepts one namespaced source ID, reloads trusted metadata from Sanity, validates commit/path shape, and constructs a fixed-host `raw.githubusercontent.com/Hyphae-Research-Foundation/hyphae` URL. Redirects are forbidden; bytes stream into SHA-256 under a 700 KB limit and 20-second timeout.
 
-After model output passes its schema, `evidence-resolver.ts` resolves Knowledge Base citation labels, generated entry paths, and structured Atlas document IDs to `sourceDocument` references in Sanity. The result is a deterministic list of upstream URLs, commits, SHA-256 digests, licenses, lifecycle states, authority ranks, and match reasons.
+## Operational trace
 
-`POST /api/evidence/verify` never accepts an arbitrary URL. It accepts only a namespaced source ID, reloads trusted metadata from Sanity, validates commit/path shape, constructs an allowlisted raw GitHub URL, enforces a 700 KB limit and 20-second timeout, and compares SHA-256 bytes. This avoids SSRF and prevents the browser or model from selecting the verification target.
+The visible trace is operational metadata, not private chain of thought:
 
-## Replays and trace
-
-Six live runs are captured by `npm run replays:capture`: migration, capability, and claim in English and Spanish. Replays store no tokens and retain the exact report, operational tool trace, resolved source ledger, and capture time. Live mode remains available.
-
-The visible trace reports tools and data-flow events only. It never exposes hidden chain of thought. Its four stages are Context orientation, Knowledge Base retrieval, deterministic evidence resolution, and report-contract validation.
-
-## Audited grounding
-
-The model's source labels do not establish grounding by themselves. Atlas records the actual xAI MCP call arguments, repeats the observed `knowledge_base_read` calls directly against Sanity Context, and builds an auditable corpus from the returned text. A finding passes only when at least one of its citation labels appears in that retrieved corpus and resolves through canonical Sanity relationships to an upstream source document. Model-provided HTTP links are not rendered.
+1. backend `initial_context` call;
+2. backend `knowledge_base_read` call and exact selected paths;
+3. evidence resolution count and per-finding coverage;
+4. JSON schema and source-resolution validation, explicitly not independent factual validation.
 
 ## Admission and cancellation
 
-The public route applies a cheap admission bucket before body parsing, then streams at most 16 KiB for five seconds. Only a valid query consumes the expensive per-client/global model budget or concurrency slot. Browser abort signals propagate to xAI, the direct Context audit, and Sanity resolution; a cancellation smoke verifies HTTP 499 in under five seconds and slot release.
+- A cheap per-client admission bucket precedes parsing.
+- Bodies stream under 16 KiB and a five-second completion deadline.
+- Expensive per-client/global budgets and concurrency slots are acquired only after schema validation.
+- At most two live model reports run per process.
+- Browser abort signals propagate through provider requests, Context calls, and Sanity resolver reads.
+- Cancellation smoke verifies HTTP 499 and slot release in roughly 150 ms.
+- The route declares `maxDuration = 300` and a 285-second global deadline that dominates the serial Context/model stages and leaves cleanup margin.
 
-In-process limits are defense in depth. A deployed multi-instance service still requires a provider/edge durable rate policy. The Next.js route declares a 300-second maximum duration.
+In-process limits are defense in depth. A multi-instance public deployment still requires a durable provider/edge rate policy.
 
 ## Least privilege
 
-Production receives only an xAI model key, organization Context Viewer token, and project Viewer token. Editor and Deploy Studio credentials are reserved for offline import and operator deployment and must not be configured in the web runtime.
+Production receives only:
+
+- the selected model provider key;
+- organization `Context Viewer` token;
+- project `Viewer` token.
+
+Project `Editor` and `Deploy Studio` tokens are reserved for offline import and operator deployment and must not be configured in the web runtime.
+
+## Replays
+
+Six real Context runs—three modes in English and Spanish—are captured as public snapshots. They retain provider/model identity, report, exact Context paths, trace, resolved evidence, and capture time. Replays require no model key and make the public demo immediately usable; live mode remains available.
+
+## Failure behavior
+
+- Invalid/oversized/slow bodies return 400/413/408.
+- Rate and concurrency limits return 429/503 with retry guidance.
+- Browser cancellation returns 499.
+- Provider, Context, parsing, schema, or grounding failures fail closed with redacted errors.
+- Missing evidence should produce `unknown` or `unproven`, never a guessed answer.

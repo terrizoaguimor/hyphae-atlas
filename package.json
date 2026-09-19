@@ -2,7 +2,7 @@
   "name": "hyphae-atlas",
   "version": "0.1.0",
   "private": true,
-  "description": "A version-aware evidence agent for Hyphae, powered by Sanity Context and Grok.",
+  "description": "A model-agnostic, version-aware evidence agent for Hyphae powered by Sanity Context.",
   "license": "Apache-2.0",
   "author": "Mario Gutierrez",
   "repository": {
@@ -25,6 +25,7 @@
     "replays:capture": "tsx scripts/capture-replays.ts",
     "security:smoke": "tsx scripts/security-smoke.ts",
     "cancellation:smoke": "tsx scripts/cancellation-smoke.ts",
+    "providers:smoke": "tsx scripts/provider-smoke.ts",
     "evaluate": "tsx evaluation/run.ts"
   },
   "engines": {

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-19T18:09:50.393Z",
+  "generatedAt": "2026-09-19T21:42:54.958Z",
   "replays": {
     "en.migration": {
       "label": "Native 2.x → 3.0 migration",
@@ -15,89 +15,85 @@
         "report": {
           "mode": "migration",
           "verdict": "conditional",
-          "summary": "A Hyphae 2.x Native directory can be opened by 3.0.0. It stays 2.x-readable until the first accepted mutation, which upgrades records in place that 2.x cannot read; back up first. Downgrade safety after that mutation is not established. Directories written by 3.0.0 use HYPOST02 postings and, after the first accepted search mutation, HYPSMAN2/HYPSCHK1 manifests that 2.x releases cannot read. This applies only to Native format-1 directories, not format-2.",
+          "summary": "A Hyphae 2.x Native directory can be opened by 3.0.0; the native FORMAT marker stays hyphae-native-format=1. The directory changes in place on the first accepted mutation, which upgrades records 2.x cannot read. Downgrade safety after that mutation is not established, and the 3.0.0 changelog states that 2.x releases cannot read 3.0.0-written directories. Back up before accepting the first mutation.",
           "applicability": {
             "version": "3.0.0",
-            "surface": "Native data directory",
-            "protocolMinor": null
+            "surface": "Native directory",
+            "protocolMinor": "6"
           },
           "findings": [
             {
-              "statement": "Every 2.x native directory opens on Hyphae 3.0 / 3.0.0.",
+              "statement": "Every 2.x native directory opens on Hyphae 3.0.0.",
               "status": "confirmed",
               "qualifiers": [
-                "Applies to Native format-1 (hyphae-native-format=1) directories, not format-2.",
-                "3.0.0 native directory format remains format 1; protocol minor 6 is additive and is not the on-disk gate."
+                "Applies to native directories governed by FORMAT hyphae-native-format=1",
+                "Does not apply to format-2 directories: if FORMAT begins with hyphae-disk-format=, the native runtime reports an explicit format-2 directory error and never converts, upgrades, or reinterprets the directory in place",
+                "Hyphae 3.0.0 native local protocol is minor 6 (additive); protocol minors supported are 1–6; disk formats are native directory format 1 and legacy format 2 import"
               ],
               "sourceUrls": [
                 "Native directory format v1 — Dataset",
                 "Open a Native 2.x directory with Hyphae 3.0 — Dataset",
-                "Changelog § Changelog — Dataset"
-              ]
-            },
-            {
-              "statement": "The directory changes in place on the first accepted mutation; that upgrade writes records 2.x cannot read.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Back up before accepting the first mutation.",
-                "HYPSMAN1 manifests are read forever and upgrade on first accepted mutation.",
-                "After first accepted search mutation, directories use HYPSMAN2 headers and 16 KB HYPSCHK1 chunked manifests.",
-                "Directories written by 3.0.0 use HYPOST02 postings."
-              ],
-              "sourceUrls": [
-                "Native directory format v1 — Dataset",
                 "Changelog § Changelog — Dataset",
                 "hyphaeAtlas.release.3-0-0 — Dataset"
               ]
             },
             {
-              "statement": "Downgrade compatibility after the first 3.0 mutation is not established.",
+              "statement": "The directory changes in place on the first accepted mutation, which upgrades records that 2.x cannot read.",
               "status": "confirmed",
               "qualifiers": [
-                "No promise should be made that a 3.0-mutated directory remains readable by 2.x.",
-                "Changelog states 2.x releases cannot read 3.0.0-written directories."
+                "HYPSMAN1 manifests are read forever and upgrade on first accepted mutation",
+                "Directories written by 3.0.0 use HYPOST02 postings and, after first accepted search mutation, HYPSMAN2 / HYPSCHK1 chunked manifests",
+                "The native FORMAT marker remains hyphae-native-format=1; a 3.0.0 consumer binary reported native directory format 1"
               ],
               "sourceUrls": [
                 "Native directory format v1 — Dataset",
-                "Changelog § Changelog — Dataset"
+                "Changelog § Changelog — Dataset",
+                "Hyphae 3.0.0 exact-SHA G8 release closure — Dataset"
               ]
             },
             {
-              "statement": "Hyphae 3.0 Native never opens, converts, or rewrites a format-2 directory in place.",
-              "status": "confirmed",
+              "statement": "Downgrade safety after the first 3.0 mutation is established.",
+              "status": "rejected",
               "qualifiers": [
-                "If FORMAT begins with hyphae-disk-format=, the native runtime reports an explicit format-2 directory error.",
-                "Format-2 migration is a separate offline promotion-marker path (FORMAT.pending → FORMAT) and is not 2.x Native upgrade.",
-                "G6 deliberately does not claim format-2 migration as a Native 3.0.0 product capability."
+                "Sources do not confirm that a 3.0-mutated directory remains readable by 2.x",
+                "No such promise should be made"
               ],
               "sourceUrls": [
-                "Native directory format v1 — Dataset",
-                "Import legacy format-2 state into Native — Dataset",
-                "Native local product contract v1 — Dataset"
+                "Native directory format v1 — Dataset"
+              ]
+            },
+            {
+              "statement": "2.x releases cannot read 3.0.0-written directories.",
+              "status": "confirmed",
+              "qualifiers": [
+                "3.0.0 changelog wording for directories written by 3.0.0",
+                "Stronger than the format-spec statement that post-mutation downgrade compatibility is not established"
+              ],
+              "sourceUrls": [
+                "Changelog § Changelog — Dataset"
               ]
             }
           ],
           "conflicts": [
             {
-              "description": "storage/format_spec says downgrade compatibility after the first 3.0 mutation is not established and must not be promised. releases/changelogs 3.0.0 states that 2.x releases cannot read 3.0.0-written directories.",
-              "resolution": "Do not claim downgrade safety. Treat 3.0.0-written directories as unreadable by 2.x. Treat a 2.x Native directory that 3.0 has already mutated as not having an established 2.x reopen path. Opening an unmutated 2.x Native directory on 3.0.0 remains supported.",
+              "description": "The 3.0.0 changelog states that 2.x releases cannot read 3.0.0-written directories, while the native format spec states only that downgrade compatibility after the first 3.0 mutation is not established and that no such promise should be made.",
+              "resolution": "Do not claim downgrade safety. Treat open of an unmodified 2.x native directory on 3.0.0 as confirmed. Treat post-mutation 2.x readability as unsupported for product claims. Preserve both wordings rather than collapsing them into a single stronger or weaker claim.",
               "sourceUrls": [
-                "Native directory format v1 — Dataset",
-                "Changelog § Changelog — Dataset"
+                "Changelog § Changelog — Dataset",
+                "Native directory format v1 — Dataset"
               ]
             }
           ],
           "recommendedActions": [
-            "Back up the 2.x Native directory before opening it for write on 3.0.0.",
-            "Open on 3.0.0 only if an in-place upgrade on first accepted mutation is acceptable.",
-            "After the first accepted 3.0 mutation, operate the directory as 3.0.0-only; do not plan a 2.x reopen.",
-            "Confirm FORMAT is hyphae-native-format=1; do not expect Native 3.0.0 to open or convert a hyphae-disk-format= (format-2) directory in place."
+            "Back up the 2.x native directory before accepting the first mutation on 3.0.0.",
+            "Do not plan to reopen a 3.0.0-mutated or 3.0.0-written directory with a 2.x binary.",
+            "Keep format-2 import (FORMAT.pending promotion) separate from this 2.x Native to 3.0.0 path; 3.0.0 does not convert format-2 in place."
           ],
           "limitations": [
-            "This report uses only retrieved Hyphae Atlas entries; it is not a runtime open of a live directory.",
-            "Search-manifest upgrade is specified as first accepted search mutation (HYPSMAN2/HYPSCHK1); other 3.0.0-written families are named as HYPOST02 without a per-family mutation catalog here.",
-            "Roadmaps and unreleased documents were not used as proof of published upgrade or downgrade behavior.",
-            "Native local protocol minor 6 is the 3.0.0 wire minor; directory applicability is native format 1 at commit 24bce1accdff8d14127797afe6f237a57c1cd4f3."
+            "Downgrade compatibility after the first 3.0 mutation is not established.",
+            "The format spec's 2.x-to-3.0 paragraph is footnoted to Import legacy format-2 state into Native — Dataset while a dedicated Open a Native 2.x directory with Hyphae 3.0 — Dataset source is listed; body text is corroborated by the 3.0.0 changelog.",
+            "Protocol minor 6 is the 3.0.0 native local protocol minor and is not the on-disk native directory format version.",
+            "Unreleased post-3.0.0 documents are not used as proof of published behavior."
           ],
           "sources": [
             {
@@ -107,14 +103,8 @@
               "commit": null
             },
             {
-              "title": "Open a Native 2.x directory with Hyphae 3.0",
+              "title": "Native Directory Format v1 Spec",
               "url": "Open a Native 2.x directory with Hyphae 3.0 — Dataset",
-              "path": "storage/format_spec",
-              "commit": null
-            },
-            {
-              "title": "Import legacy format-2 state into Native",
-              "url": "Import legacy format-2 state into Native — Dataset",
               "path": "storage/format_spec",
               "commit": null
             },
@@ -125,22 +115,16 @@
               "commit": "24bce1accdff8d14127797afe6f237a57c1cd4f3"
             },
             {
-              "title": "hyphaeAtlas.release.3-0-0",
+              "title": "Release Changelogs",
               "url": "hyphaeAtlas.release.3-0-0 — Dataset",
               "path": "releases/changelogs",
               "commit": "24bce1accdff8d14127797afe6f237a57c1cd4f3"
             },
             {
-              "title": "G6 Product Specification and Scope",
-              "url": "Native local product contract v1 — Dataset",
-              "path": "capabilities/product_specification",
+              "title": "Release Verification and Attestation",
+              "url": "Hyphae 3.0.0 exact-SHA G8 release closure — Dataset",
+              "path": "releases/verification",
               "commit": "24bce1accdff8d14127797afe6f237a57c1cd4f3"
-            },
-            {
-              "title": "On-Disk Compatibility Fixtures",
-              "url": "On-disk compatibility fixtures — Dataset",
-              "path": "storage/fixtures",
-              "commit": null
             }
           ]
         },
@@ -150,8 +134,8 @@
             "initial_context",
             "knowledge_base_read"
           ],
-          "model": "grok-4.6",
-          "durationMs": 83941
+          "model": "xai/grok-4.6",
+          "durationMs": 124570
         },
         "evidence": {
           "sources": [
@@ -170,6 +154,7 @@
                 "structured-reference"
               ],
               "supportsFindings": [
+                0,
                 1
               ]
             },
@@ -185,32 +170,12 @@
               "authorityRank": 95,
               "matchedBy": [
                 "canonical-citation",
-                "knowledge-base-entry",
-                "structured-reference"
+                "knowledge-base-entry"
               ],
               "supportsFindings": [
                 0,
                 1,
-                2,
-                3
-              ]
-            },
-            {
-              "id": "hyphaeAtlas.source.0cb8bbee996b9760c635a26e",
-              "title": "Native local product contract v1",
-              "path": "docs/native/local-product-v1.md",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/docs/native/local-product-v1.md",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "2758727a1a6263562f67462cd2460a23409bbacc89048194c12746a3c820906d",
-              "license": "Apache-2.0",
-              "lifecycleStatus": "published",
-              "authorityRank": 95,
-              "matchedBy": [
-                "canonical-citation",
-                "knowledge-base-entry"
-              ],
-              "supportsFindings": [
-                3
+                2
               ]
             },
             {
@@ -224,29 +189,10 @@
               "lifecycleStatus": "published",
               "authorityRank": 95,
               "matchedBy": [
-                "knowledge-base-entry",
                 "structured-reference"
               ],
               "supportsFindings": [
-                1
-              ]
-            },
-            {
-              "id": "hyphaeAtlas.source.930cfaf0b684f95dd8939b5e",
-              "title": "On-disk compatibility fixtures",
-              "path": "compatibility/README.md",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/compatibility/README.md",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "b8f0bb1791c88b61b05a27fd9c1dd8dc2c6003a2c9d0f3389ddc0c5a8faeed82",
-              "license": "CC-BY-SA-4.0",
-              "lifecycleStatus": "published",
-              "authorityRank": 85,
-              "matchedBy": [
-                "canonical-citation",
-                "structured-reference"
-              ],
-              "supportsFindings": [
-                3
+                0
               ]
             },
             {
@@ -267,7 +213,7 @@
               "supportsFindings": [
                 0,
                 1,
-                2
+                3
               ]
             },
             {
@@ -285,8 +231,7 @@
                 "structured-reference"
               ],
               "supportsFindings": [
-                0,
-                1
+                0
               ]
             }
           ],
@@ -295,30 +240,27 @@
             [
               "hyphaeAtlas.source.40a6987af2e16fd0703810dc",
               "hyphaeAtlas.source.b335630551682c19a781afeb",
-              "hyphaeAtlas.source.06572a96a58dc510037d5efa"
-            ],
-            [
-              "hyphaeAtlas.source.40a6987af2e16fd0703810dc",
               "hyphaeAtlas.source.06572a96a58dc510037d5efa",
               "hyphaeAtlas.source.d97e76f790cb66a316b3461a",
-              "hyphaeAtlas.source.b335630551682c19a781afeb",
               "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
             ],
             [
               "hyphaeAtlas.source.40a6987af2e16fd0703810dc",
-              "hyphaeAtlas.source.06572a96a58dc510037d5efa"
+              "hyphaeAtlas.source.06572a96a58dc510037d5efa",
+              "hyphaeAtlas.source.d97e76f790cb66a316b3461a"
             ],
             [
-              "hyphaeAtlas.source.40a6987af2e16fd0703810dc",
-              "hyphaeAtlas.source.930cfaf0b684f95dd8939b5e",
-              "hyphaeAtlas.source.0cb8bbee996b9760c635a26e"
+              "hyphaeAtlas.source.40a6987af2e16fd0703810dc"
+            ],
+            [
+              "hyphaeAtlas.source.06572a96a58dc510037d5efa"
             ]
           ],
           "findingCoverage": 1,
           "conflictSourceIds": [
             [
-              "hyphaeAtlas.source.40a6987af2e16fd0703810dc",
-              "hyphaeAtlas.source.06572a96a58dc510037d5efa"
+              "hyphaeAtlas.source.06572a96a58dc510037d5efa",
+              "hyphaeAtlas.source.40a6987af2e16fd0703810dc"
             ]
           ]
         },
@@ -328,19 +270,18 @@
             "kind": "tool",
             "name": "initial_context",
             "status": "complete",
-            "detail": "Observed Context tool call before the final response."
+            "detail": "Backend-owned MCP call completed before model synthesis."
           },
           {
             "id": "read",
             "kind": "tool",
             "name": "knowledge_base_read",
             "status": "complete",
-            "detail": "Observed retrieval of 4 Knowledge Base entries.",
+            "detail": "Backend retrieved 3 validated Knowledge Base entries.",
             "entries": [
               "storage/format_spec",
               "releases/changelogs",
-              "capabilities/product_specification",
-              "storage/fixtures"
+              "releases/verification"
             ]
           },
           {
@@ -348,7 +289,7 @@
             "kind": "resolver",
             "name": "evidence_resolver",
             "status": "complete",
-            "detail": "Resolved upstream evidence for 4/4 findings across 7 source documents."
+            "detail": "Resolved upstream evidence for 4/4 findings across 5 source documents."
           },
           {
             "id": "validate",
@@ -358,7 +299,7 @@
             "detail": "Validated the JSON report schema and per-finding source resolution. This is not independent factual validation of the verdict."
           }
         ],
-        "capturedAt": "2026-09-19T18:00:24.748Z"
+        "capturedAt": "2026-09-19T21:33:28.282Z"
       }
     },
     "en.capability": {
@@ -375,7 +316,7 @@
         "report": {
           "mode": "capability",
           "verdict": "conditional",
-          "summary": "Hyphae Native MCP v2 on 3.0.0 does not allow mutation tools by default: the adapter is read-only unless an explicit write flag and a key with data.write are both present. Runtime bounds include 4 MiB input/output, one active call, fail-closed unknown fields, and no prompt-supplied authority. The published native-mcp-v2.json contract also states it contains no mutation tool, which conflicts with the adapter tool inventory that documents ingest/store/forget as flag-gated write tools.",
+          "summary": "For Hyphae Native 3.0.0 Native MCP (v2), mutation tools are not allowed by default: the adapter is read-only unless an explicit write flag is passed and the API key carries data.write. Hard bounds include 4 MiB input/output, one active call, forbidden MCP tasks, fail-closed unknown fields, and no prompt-supplied authority escalation. Adapter and tool-schema documents describe gated write tools, but the published native-mcp-v2.json contract is also described as containing no mutation tool; that contract-description conflict is unresolved.",
           "applicability": {
             "version": "3.0.0",
             "surface": "Native MCP",
@@ -383,86 +324,48 @@
           },
           "findings": [
             {
-              "statement": "The Native MCP adapter does not allow mutation tools by default; it is read-only by default and lists eight tools with no write flags.",
+              "statement": "The Native MCP adapter does not allow mutation tools by default; it is read-only and lists eight tools without write flags.",
               "status": "confirmed",
               "qualifiers": [
-                "Introduced in release 3.0.0.",
-                "Applies to hyphae mcp as a bounded stdio adapter over an already-running Native local or HTTP v2 service."
+                "Introduced in release 3.0.0",
+                "The checked-in agent plugin never passes --allow-ingest and stays read-only"
               ],
               "sourceUrls": [
                 "Native MCP adapter — Dataset",
-                "Bounded Native MCP adapter — Dataset",
-                "Public contracts — Dataset"
+                "Bounded Native MCP adapter — Dataset"
               ]
             },
             {
-              "statement": "On the full Native MCP registry, write tools are exposed only when --allow-ingest is passed and the key's durable authority carries data.write (built-in Writer role).",
+              "statement": "Write tools are exposed only when both an explicit adapter flag is passed and the key's durable authority carries data.write (built-in Writer role).",
               "status": "confirmed",
               "qualifiers": [
-                "A Reader or Auditor key still receives a typed denial even with the flag present.",
-                "The API key is the sole authority for all tools in that process; tool arguments and model-generated prompt input cannot supply another key, principal, role, or permission.",
-                "The checked-in agent plugin never passes --allow-ingest and stays read-only."
+                "A Reader or Auditor key still receives a typed denial even with the flag present",
+                "Tool arguments and model-generated prompt input cannot supply another key, principal, role, or permission"
               ],
               "sourceUrls": [
                 "Native MCP adapter — Dataset"
               ]
             },
             {
-              "statement": "hyphae_native_search_ingest, hyphae_native_memory_store, and hyphae_native_memory_forget are listed and callable only with --allow-ingest and write authority, and are marked readOnlyHint: false.",
-              "status": "conditional",
-              "qualifiers": [
-                "These tools appear in the 11-tool inventory only when the write gate is satisfied.",
-                "This runtime inventory conflicts with the published native-mcp-v2.json statement that the contract contains no mutation tool."
-              ],
-              "sourceUrls": [
-                "native-mcp-v2.json § native-mcp-v2.json › content — Dataset",
-                "Native MCP adapter — Dataset"
-              ]
-            },
-            {
-              "statement": "On --profile memory, recall and status are always listed; store, journal, and forget are listed only with --allow-write and still require a key with write authority.",
+              "statement": "Write-flag bounds are profile-specific: --allow-ingest on the full profile and --allow-write on the memory profile.",
               "status": "confirmed",
               "qualifiers": [
-                "The memory profile replaces the full 11-tool registry with the Agent Memory five-tool surface over personal, work, and journal collections.",
-                "Memory-profile tool names in the Agent Memory contract are hyphae_memory_store, hyphae_memory_journal, hyphae_memory_recall, hyphae_memory_forget, and hyphae_memory_status.",
-                "The MCP surface never advertises a tool the presented credential cannot execute."
+                "Full profile: hyphae_native_search_ingest, hyphae_native_memory_store, and hyphae_native_memory_forget are listed/callable only with --allow-ingest and write authority and have readOnlyHint false",
+                "Memory profile always lists recall and status; store, journal, and forget are listed only with --allow-write and still require write authority"
               ],
               "sourceUrls": [
                 "Native MCP adapter — Dataset",
-                "Hyphae Agent Memory — product contract § Hyphae Agent Memory — product contract › MCP surface — Dataset",
-                "Hyphae Agent Memory — product contract § Hyphae Agent Memory — product contract — Dataset"
-              ]
-            },
-            {
-              "statement": "When search ingest is enabled, one call may atomically ingest a bounded idempotent batch of 1–256 documents into one Native search collection.",
-              "status": "conditional",
-              "qualifiers": [
-                "Requires --allow-ingest and write authority.",
-                "Each document requires id and text; vectors are named float arrays of 1–65535 items.",
-                "Output status is committed or existing."
-              ],
-              "sourceUrls": [
                 "native-mcp-v2.json § native-mcp-v2.json › content — Dataset"
               ]
             },
             {
-              "statement": "When native memory store/forget are enabled on the full registry, store accepts text of 1–4096 characters with optional ttl_seconds 1–316224000, and forget permanently tombstones one memory by collection and id.",
-              "status": "conditional",
-              "qualifiers": [
-                "Tool schemas state these native memory write tools require --allow-ingest and write authority, not --allow-write.",
-                "forget is documented as readOnlyHint: false and idempotentHint: true."
-              ],
-              "sourceUrls": [
-                "native-mcp-v2.json § native-mcp-v2.json › content — Dataset"
-              ]
-            },
-            {
-              "statement": "Hard adapter bounds are 4,194,304 input bytes, 4,194,304 output bytes, 1 active tool call, 1 pending response, idempotent notifications/cancelled, and taskSupport forbidden on every tool.",
+              "statement": "Adapter and tool-contract resource bounds are 4 MiB complete input, 4 MiB complete output, one active tool call, one pending response, tools/list page size 100, and MCP tasks forbidden.",
               "status": "confirmed",
               "qualifiers": [
-                "A second call is rejected immediately, not queued.",
-                "Advertised MCP revision is 2025-06-18.",
-                "tools/list page size is a fixed maximum of 100 definitions."
+                "A second call is rejected immediately, not queued",
+                "Advertised MCP revision 2025-06-18",
+                "Transport is newline-delimited JSON-RPC 2.0 over stdin/stdout",
+                "Cancellation via notifications/cancelled is idempotent"
               ],
               "sourceUrls": [
                 "Native MCP adapter — Dataset",
@@ -474,57 +377,38 @@
               "statement": "The adapter explicitly does not support unbounded concurrency or prompt-supplied authority escalation; unknown input fields fail closed.",
               "status": "confirmed",
               "qualifiers": [
-                "Plaintext http:// is accepted only for canonical loopback hosts; any non-loopback MCP base URL must use https://.",
-                "The adapter never opens a data directory, starts a listener, or accepts a format-2 bearer token."
+                "The API key establishes the sole authority for all tools in that process",
+                "The adapter never opens a data directory, starts a listener, or accepts a format-2 bearer token"
               ],
               "sourceUrls": [
                 "Bounded Native MCP adapter — Dataset",
                 "Native MCP adapter — Dataset"
               ]
-            },
-            {
-              "statement": "The published Native MCP v2 contract (native-mcp-v2.json) intentionally contains no mutation tool and states that all eleven tools are read-only.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Write-flag surface is governed by native-access-control-v1.json, not native-mcp-v2.json itself.",
-                "Contract identity is hyphae-native-mcp-contract-v2; the BLAKE3 digest of the embedded contract bytes is returned at initialization, on every tool-list page, and in every tool result."
-              ],
-              "sourceUrls": [
-                "Public contracts — Dataset"
-              ]
             }
           ],
           "conflicts": [
             {
-              "description": "protocols/mcp states that native-mcp-v2.json intentionally contains no mutation tool and that all eleven tools are read-only. mcp_protocol_and_adapter/tool_schemas_and_contracts inventories eleven tools including hyphae_native_search_ingest, hyphae_native_memory_store, and hyphae_native_memory_forget with readOnlyHint: false. mcp_protocol_and_adapter/adapter_setup_and_operation says eight tools are listed without flags and write tools are exposed only with flags plus data.write.",
-              "resolution": "Do not silently combine these. Published machine contract native-mcp-v2.json governs the MCP contract domain and does not prove a published mutation-tool capability. Adapter setup and tool-schema prose may describe runtime flag gating via native-access-control-v1.json. Default read-only behavior is agreed across sources. Whether mutation tools are part of the published MCP v2 contract remains unresolved without a documented authority decision.",
+              "description": "Public contracts state that native-mcp-v2.json is a bounded read-only tool contract that intentionally contains no mutation tool and that all eleven tools are read-only, while the tool-schema dataset for native-mcp-v2.json lists hyphae_native_search_ingest, hyphae_native_memory_store, and hyphae_native_memory_forget with readOnlyHint false. The same public-contracts page also says write operations require explicit flags governed by native-access-control-v1.json, not native-mcp-v2.json itself.",
+              "resolution": "Do not combine the incompatible native-mcp-v2.json descriptions. Adapter default remains read-only on both accounts. Whether mutation tools are part of the published machine contract is unproven without an authority decision or the contract bytes/receipts. Operational gating of write tools is evidenced only by adapter-setup and tool-schema prose plus the access-control write-flag surface.",
               "sourceUrls": [
                 "Public contracts — Dataset",
-                "native-mcp-v2.json § native-mcp-v2.json › content — Dataset",
-                "Native MCP adapter — Dataset"
-              ]
-            },
-            {
-              "description": "Full-registry tool schemas require --allow-ingest for hyphae_native_memory_store and hyphae_native_memory_forget, while the memory profile documents --allow-write for store, journal, and forget.",
-              "resolution": "Keep the flags profile-scoped rather than merged: --allow-ingest on the full Native MCP registry; --allow-write on --profile memory. Do not claim a single write flag covers both registries.",
-              "sourceUrls": [
                 "native-mcp-v2.json § native-mcp-v2.json › content — Dataset",
                 "Native MCP adapter — Dataset"
               ]
             }
           ],
           "recommendedActions": [
-            "Treat Native MCP v2 on 3.0.0 as read-only by default; do not start hyphae mcp with --allow-ingest or --allow-write unless mutation is explicitly required.",
-            "Issue a Reader or Auditor key when mutation must remain impossible even if a write flag is later added.",
-            "Do not claim that native-mcp-v2.json publishes mutation tools until the contract-versus-adapter inventory conflict is resolved by a documented authority decision.",
-            "Retain the 4 MiB message bound, single active call, forbidden MCP tasks, fail-closed unknown fields, and no prompt-supplied authority as non-optional bounds.",
-            "For Agent Memory, use hyphae mcp --profile memory and apply --allow-write only for store/journal/forget; do not equate that five-tool registry with the full 11-tool Native MCP registry."
+            "Treat Native MCP 3.0.0 / protocol minor 2 as read-only by default; do not claim mutation tools are enabled unless the matching write flag and a data.write key are both present.",
+            "Keep the checked-in agent plugin and Auditor-scoped keys when mutation must stay closed.",
+            "If writes are required, pass --allow-ingest on the full profile or --allow-write on --profile memory, and issue a Writer key; expect typed authorization_denied otherwise.",
+            "Retain 4 MiB message limits, one active call, forbidden MCP tasks, fail-closed unknown fields, and no prompt-supplied escalation as hard non-claims.",
+            "Do not advertise mutation tools as contents of native-mcp-v2.json until the contract-description conflict is resolved by the published contract bytes or a documented authority decision."
           ],
           "limitations": [
-            "The 3.0.0 G6 capability matrix does not include a Native MCP column, so MCP mutation cannot be inferred from Embedded Rust, CLI, local protocol, HTTP /v2, or SDK cells.",
-            "MCP knowledge-base entries do not carry per-entry commit SHAs; G8 release commit 24bce1accdff8d14127797afe6f237a57c1cd4f3 is product-wide, not MCP-specific.",
-            "Agent Memory five-verb names and permission profiles are a replaced registry under --profile memory, not additional tools on the default 11-tool list.",
-            "No retrieved authority decision reconciles native-mcp-v2.json's no-mutation-tool wording with the adapter write-tool inventory."
+            "Retrieved descriptions of native-mcp-v2.json disagree on whether the published contract contains mutation tools.",
+            "Memory-profile tool names (store, journal, forget, status) are a replaced five-tool registry, not identical to the eleven-tool full-registry names.",
+            "The G6 product specification confirms Native 3.0.0 scope but does not independently define MCP write defaults.",
+            "No contract digest bytes, initialization receipt, or MCP-document commit were retrieved to break the contract conflict."
           ],
           "sources": [
             {
@@ -550,18 +434,6 @@
               "url": "Public contracts — Dataset",
               "path": "protocols/mcp",
               "commit": null
-            },
-            {
-              "title": "Agent Memory Architecture and Interface",
-              "url": "Hyphae Agent Memory — product contract § Hyphae Agent Memory — product contract › MCP surface — Dataset",
-              "path": "agent_memory",
-              "commit": null
-            },
-            {
-              "title": "Agent Memory Architecture and Interface",
-              "url": "Hyphae Agent Memory — product contract § Hyphae Agent Memory — product contract — Dataset",
-              "path": "agent_memory",
-              "commit": null
             }
           ]
         },
@@ -571,8 +443,8 @@
             "initial_context",
             "knowledge_base_read"
           ],
-          "model": "grok-4.6",
-          "durationMs": 139306
+          "model": "xai/grok-4.6",
+          "durationMs": 132046
         },
         "evidence": {
           "sources": [
@@ -594,10 +466,8 @@
               "supportsFindings": [
                 0,
                 2,
-                4,
-                5,
-                6,
-                7
+                3,
+                4
               ]
             },
             {
@@ -615,9 +485,7 @@
                 "knowledge-base-entry"
               ],
               "supportsFindings": [
-                0,
-                6,
-                8
+                3
               ]
             },
             {
@@ -640,66 +508,21 @@
                 1,
                 2,
                 3,
-                6,
-                7
+                4
               ]
-            },
-            {
-              "id": "hyphaeAtlas.source.71d8742d5ccb39f9a1f104fa",
-              "title": "Hyphae Agent Memory — product contract",
-              "path": "docs/product/agent-memory.md",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/docs/product/agent-memory.md",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "8a9130062c296ba197d6e1e9372116869cec372d834cbadcf80761bffde459ce",
-              "license": "CC-BY-SA-4.0",
-              "lifecycleStatus": "unreleased",
-              "authorityRank": 75,
-              "matchedBy": [
-                "canonical-citation",
-                "knowledge-base-entry"
-              ],
-              "supportsFindings": [
-                3
-              ]
-            },
-            {
-              "id": "hyphaeAtlas.source.b335630551682c19a781afeb",
-              "title": "README.md",
-              "path": "README.md",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/README.md",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "a0bf1c35b68a39e420bd3a6d2876d86b35219e60c6c91b348420ea408a4f4c01",
-              "license": "CC-BY-SA-4.0",
-              "lifecycleStatus": "published",
-              "authorityRank": 50,
-              "matchedBy": [
-                "knowledge-base-entry"
-              ],
-              "supportsFindings": []
             }
           ],
           "coverage": 1,
           "findingSourceIds": [
             [
               "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
-              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3",
-              "hyphaeAtlas.source.ade534f3be7a8d62d9e06a68"
+              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
             ],
             [
               "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27"
             ],
             [
-              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3",
-              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27"
-            ],
-            [
               "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
-              "hyphaeAtlas.source.71d8742d5ccb39f9a1f104fa"
-            ],
-            [
-              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
-            ],
-            [
               "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
             ],
             [
@@ -710,19 +533,12 @@
             [
               "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
               "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
-            ],
-            [
-              "hyphaeAtlas.source.ade534f3be7a8d62d9e06a68"
             ]
           ],
           "findingCoverage": 1,
           "conflictSourceIds": [
             [
               "hyphaeAtlas.source.ade534f3be7a8d62d9e06a68",
-              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3",
-              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27"
-            ],
-            [
               "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3",
               "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27"
             ]
@@ -734,21 +550,19 @@
             "kind": "tool",
             "name": "initial_context",
             "status": "complete",
-            "detail": "Observed Context tool call before the final response."
+            "detail": "Backend-owned MCP call completed before model synthesis."
           },
           {
             "id": "read",
             "kind": "tool",
             "name": "knowledge_base_read",
             "status": "complete",
-            "detail": "Observed retrieval of 6 Knowledge Base entries.",
+            "detail": "Backend retrieved 4 validated Knowledge Base entries.",
             "entries": [
               "mcp_protocol_and_adapter/adapter_setup_and_operation",
               "mcp_protocol_and_adapter/tool_schemas_and_contracts",
               "protocols/mcp",
-              "capabilities/product_specification",
-              "agent_memory",
-              "capabilities/claim_records"
+              "capabilities/product_specification"
             ]
           },
           {
@@ -756,7 +570,7 @@
             "kind": "resolver",
             "name": "evidence_resolver",
             "status": "complete",
-            "detail": "Resolved upstream evidence for 9/9 findings across 5 source documents."
+            "detail": "Resolved upstream evidence for 5/5 findings across 3 source documents."
           },
           {
             "id": "validate",
@@ -766,7 +580,7 @@
             "detail": "Validated the JSON report schema and per-finding source resolution. This is not independent factual validation of the verdict."
           }
         ],
-        "capturedAt": "2026-09-19T18:02:46.624Z"
+        "capturedAt": "2026-09-19T21:35:40.697Z"
       }
     },
     "en.claim": {
@@ -781,105 +595,104 @@
         "report": {
           "mode": "claim",
           "verdict": "unsupported",
-          "summary": "G7 cannot be cited as dedicated-hardware or portable latency certification for Hyphae 3.0.0. That wording is a prohibited claim even when qualified. Closed G7 evidence is environment-bound to a DigitalOcean C-60 virtual machine (artifact hyphaeAtlas.evidence.g7-c60, commit ff188af) and is classified as virtualized operational scale with an explicit no-latency-certification rule. Dedicated-hardware numbers in 3.0.0 belong to a separate evidence class and must not be attributed to G7.",
+          "summary": "G7 cannot be cited as dedicated-hardware or portable latency certification for Hyphae 3.0.0. Canonical claim records classify portable latency, dedicated-hardware latency certified, and bare-metal performance certified as prohibited G7 wordings even when qualified. Retrieved G7 evidence is limited to a DigitalOcean C-60 virtual machine under hyphaeAtlas.evidence.g7-c60 and is quotable only as virtualized operational-scale evidence with explicit non-certification and access-control qualifiers.",
           "applicability": {
             "version": "3.0.0",
-            "surface": null,
+            "surface": "hyphaeAtlas.evidence.g7-c60",
             "protocolMinor": null
           },
           "findings": [
             {
-              "statement": "G7 can be cited as dedicated-hardware or portable latency certification for Hyphae 3.0.0.",
+              "statement": "G7 cannot be cited as dedicated-hardware or portable latency certification for Hyphae 3.0.0.",
               "status": "rejected",
               "qualifiers": [
-                "Prohibited even when qualified",
-                "Certification violation for 3.0.0",
-                "Banned wording includes portable latency, dedicated-hardware latency certified, and bare-metal performance certified"
+                "Version scope is Hyphae 3.0.0 only",
+                "Even qualified dedicated-hardware or portable latency wording is a certification violation"
               ],
               "sourceUrls": [
                 "hyphaeAtlas.claim.g7-portable-latency — Dataset"
               ]
             },
             {
-              "statement": "G7 evidence for Hyphae 3.0.0 is limited to virtualized DigitalOcean C-60 operational-scale closure and does not extend as latency certification beyond that environment.",
+              "statement": "The wording portable latency, dedicated-hardware latency certified, and bare-metal performance certified is explicitly prohibited in any compliant reference to G7 evidence.",
               "status": "confirmed",
               "qualifiers": [
-                "Artifact hyphaeAtlas.evidence.g7-c60",
-                "Commit ff188af",
-                "11/11 surfaces and 33/33 C-60 cells",
-                "Virtualized operational-scale evidence class only"
+                "Prohibition applies to Hyphae 3.0.0",
+                "Making any of these claims even qualified is a certification violation"
               ],
               "sourceUrls": [
-                "hyphaeAtlas.claim.g7-portable-latency — Dataset",
-                "G7 virtualized operational-scale closure — Dataset",
-                "Native gate status — Dataset"
+                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
               ]
             },
             {
-              "statement": "Compliant references to G7 must state virtualized C-60 scope, that G7 is not a latency certification, and that the closed profile predates later access-control work.",
+              "statement": "G7 evidence is strictly limited to a DigitalOcean C-60 virtual machine under virtualized operational-scale closure hyphaeAtlas.evidence.g7-c60; no latency certification extends beyond that environment.",
               "status": "confirmed",
               "qualifiers": [
-                "All three qualifiers are required",
-                "Quotable only with the explicit virtualized, no latency certification qualifier",
-                "G7 closed on a pre-1.2 commit before durable access control entered the commit path"
+                "Virtualized operational-scale evidence only",
+                "No latency certification"
               ],
               "sourceUrls": [
                 "hyphaeAtlas.claim.g7-portable-latency — Dataset",
-                "Canonical claims and non-claims — Dataset",
-                "Native gate status — Dataset"
-              ]
-            },
-            {
-              "statement": "G7 is closed as an environment-bound C-60 operational-scale gate and does not certify dedicated-hardware, interference, or canonical latency.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Closure commit ff188af",
-                "Evidence file docs/gates/evidence/closures/native-g7-ff188af.json",
-                "Closed after the final bare-metal attempt failed before product measurement",
-                "Version scope of the portable/dedicated-hardware prohibition is 3.0.0"
-              ],
-              "sourceUrls": [
-                "Native gate status — Dataset",
                 "G7 virtualized operational-scale closure — Dataset"
               ]
             },
             {
-              "statement": "Hyphae 3.0.0 dedicated-hardware receipts are a separate performance-evidence class from G7 and cannot be used to recharacterize G7 as dedicated-hardware certification.",
+              "statement": "Any compliant reference to G7 latency evidence must include all required qualifiers: virtualized operational-scale DigitalOcean C-60 VM context; G7 does not constitute a latency certification; the G7 profile predates later access-control work.",
               "status": "confirmed",
               "qualifiers": [
-                "Hardware i7i.metal-24xl",
-                "Commit a443c52",
-                "Receipt hyphae-3.0-metal-a443c52-2026-09-03.md",
-                "Dedicated hardware class only supports comparative statements when each statement names its receipt"
+                "All three qualifiers are required together",
+                "Applies to Hyphae 3.0.0 only"
               ],
               "sourceUrls": [
-                "Changelog § Changelog — Dataset",
+                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
+              ]
+            },
+            {
+              "statement": "G7 C-60 is the virtualized operational-scale performance-evidence class and is quotable only with the explicit virtualized, no latency certification qualifier; dedicated hardware is a separate class requiring bare-metal receipts.",
+              "status": "confirmed",
+              "qualifiers": [
+                "Only the dedicated-hardware class supports comparative statements",
+                "Each dedicated-hardware statement must name its receipt"
+              ],
+              "sourceUrls": [
                 "Canonical claims and non-claims — Dataset"
+              ]
+            },
+            {
+              "statement": "The G7 gate was executed at commit ff188af on a DigitalOcean C-60 virtual machine and completed 11 surfaces and 33 concurrency cells, with recorded limitations of no dedicated-hardware latency certification, no background-interference certification, and predating access-control work.",
+              "status": "confirmed",
+              "qualifiers": [
+                "Functional concurrency, accounting, correctness, ANN recall, and durable recovery were observed",
+                "Limitations explicitly exclude dedicated-hardware latency certification"
+              ],
+              "sourceUrls": [
+                "G7 virtualized operational-scale closure — Dataset"
               ]
             }
           ],
           "conflicts": [
             {
-              "description": "performance/baselines states that no G7 performance gate has passed, while releases/gate_status and releases/verification record G7 closed on commit ff188af with 11/11 surfaces and 33/33 C-60 cells.",
-              "resolution": "Current gate-status and exact release receipts override historical baseline prose for closure status. Treat the baselines no-pass sentence as stale for whether G7 is closed. G7 remains closed only as virtualized C-60 operational-scale evidence and is still not dedicated-hardware, portable, or canonical-latency certification. Do not claim that G7 is open.",
+              "description": "Latency baseline prose states that no G7 performance gate has passed and that current receipts none pass G7, while release verification records G7 executed to completion on DigitalOcean C-60 and canonical claims refer to the closed G7 C-60 authority.",
+              "resolution": "Treat the baseline no-G7-passed wording as stale for closure status. Exact release receipts and claim records govern: do not claim that G7 is open. Closure of virtualized G7 C-60 evidence still does not authorize portable or dedicated-hardware latency certification.",
               "sourceUrls": [
                 "Microsecond-first performance contract § Microsecond-first performance contract — Dataset",
-                "Native gate status — Dataset",
-                "G7 virtualized operational-scale closure — Dataset"
+                "Microsecond-first performance contract § Microsecond-first performance contract › Current baseline — Dataset",
+                "G7 virtualized operational-scale closure — Dataset",
+                "Canonical claims and non-claims — Dataset"
               ]
             }
           ],
           "recommendedActions": [
-            "Do not describe G7 as portable latency, dedicated-hardware latency certified, or bare-metal performance certified for 3.0.0, even with qualifiers.",
-            "If G7 is mentioned at all, bind it to DigitalOcean C-60 virtualized operational-scale evidence (hyphaeAtlas.evidence.g7-c60, commit ff188af) and state that it is not a latency certification and that the profile predates durable access control.",
-            "Cite 3.0.0 metal numbers only as dedicated-hardware receipts (hyphae-3.0-metal-a443c52-2026-09-03.md, commit a443c52, i7i.metal-24xl), never as G7 certification.",
-            "For 3.0.0 performance claims, either cite this scoped pre-1.2 G7 profile explicitly or wait for a G7 re-execution on a release commit that includes the later access-control work."
+            "Do not cite G7 as dedicated-hardware, portable, or bare-metal latency certification for Hyphae 3.0.0.",
+            "If G7 is referenced at all, include every required qualifier: DigitalOcean C-60 virtualized operational-scale evidence only; G7 is not a latency certification; the profile predates later access-control work.",
+            "Keep dedicated-hardware claims on bare-metal receipts in the dedicated-hardware evidence class; do not reuse G7 C-60 for that class.",
+            "If discussing G7 closure, treat baseline no-G7-passed prose as stale for closure status and do not describe G7 as open."
           ],
           "limitations": [
-            "G7 closed on commit ff188af, not on the 3.0.0 source commit 24bce1accdff8d14127797afe6f237a57c1cd4f3.",
-            "The closed G7 profile certifies the operational-scale matrix without per-operation authorization.",
-            "No dedicated-hardware latency, background-interference, or canonical-latency certification is in the G7 record.",
-            "Baseline target-contract prose must not be used to reopen G7 or to convert G7 into a portable latency claim."
+            "The prohibited-claim classification is documented for Hyphae 3.0.0 only.",
+            "G7 execution is recorded at commit ff188af, which is not the 3.0.0 source commit 24bce1accdff8d14127797afe6f237a57c1cd4f3.",
+            "Retrieved content does not present dedicated-hardware receipts that could support a dedicated-hardware latency certification claim.",
+            "Performance baseline documents still contain stale no-G7-passed language that must be surfaced rather than silently merged."
           ],
           "sources": [
             {
@@ -895,32 +708,26 @@
               "commit": null
             },
             {
-              "title": "Gate Closure Status Index",
-              "url": "Native gate status — Dataset",
-              "path": "releases/gate_status",
-              "commit": "ff188af"
-            },
-            {
               "title": "Release Verification and Attestation",
               "url": "G7 virtualized operational-scale closure — Dataset",
               "path": "releases/verification",
               "commit": "ff188af"
             },
             {
-              "title": "Release Changelogs",
-              "url": "Changelog § Changelog — Dataset",
-              "path": "releases/changelogs",
-              "commit": "24bce1accdff8d14127797afe6f237a57c1cd4f3"
-            },
-            {
-              "title": "G6 Product Specification and Scope",
-              "url": "Native local product contract v1 — Dataset",
-              "path": "capabilities/product_specification",
+              "title": "Hyphae 3.0.0 exact-SHA G8 release closure",
+              "url": "Hyphae 3.0.0 exact-SHA G8 release closure — Dataset",
+              "path": "releases/verification",
               "commit": "24bce1accdff8d14127797afe6f237a57c1cd4f3"
             },
             {
               "title": "Latency Baselines and Measurement Protocol",
               "url": "Microsecond-first performance contract § Microsecond-first performance contract — Dataset",
+              "path": "performance/baselines",
+              "commit": null
+            },
+            {
+              "title": "Latency Baselines and Measurement Protocol",
+              "url": "Microsecond-first performance contract § Microsecond-first performance contract › Current baseline — Dataset",
               "path": "performance/baselines",
               "commit": null
             }
@@ -932,8 +739,8 @@
             "initial_context",
             "knowledge_base_read"
           ],
-          "model": "grok-4.6",
-          "durationMs": 78848
+          "model": "xai/grok-4.6",
+          "durationMs": 103088
         },
         "evidence": {
           "sources": [
@@ -956,6 +763,7 @@
                 0,
                 1,
                 2,
+                3,
                 4
               ]
             },
@@ -985,7 +793,6 @@
               "lifecycleStatus": "published",
               "authorityRank": 95,
               "matchedBy": [
-                "canonical-citation",
                 "knowledge-base-entry",
                 "structured-reference"
               ],
@@ -993,23 +800,9 @@
                 0,
                 1,
                 2,
-                3
+                3,
+                5
               ]
-            },
-            {
-              "id": "hyphaeAtlas.source.0cb8bbee996b9760c635a26e",
-              "title": "Native local product contract v1",
-              "path": "docs/native/local-product-v1.md",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/docs/native/local-product-v1.md",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "2758727a1a6263562f67462cd2460a23409bbacc89048194c12746a3c820906d",
-              "license": "Apache-2.0",
-              "lifecycleStatus": "published",
-              "authorityRank": 95,
-              "matchedBy": [
-                "knowledge-base-entry"
-              ],
-              "supportsFindings": []
             },
             {
               "id": "hyphaeAtlas.source.74ac9aaac7b567b361c5a934",
@@ -1022,13 +815,13 @@
               "lifecycleStatus": "published",
               "authorityRank": 95,
               "matchedBy": [
-                "knowledge-base-entry",
                 "structured-reference"
               ],
               "supportsFindings": [
                 0,
                 1,
-                2
+                2,
+                3
               ]
             },
             {
@@ -1042,12 +835,9 @@
               "lifecycleStatus": "published",
               "authorityRank": 70,
               "matchedBy": [
-                "canonical-citation",
                 "knowledge-base-entry"
               ],
-              "supportsFindings": [
-                4
-              ]
+              "supportsFindings": []
             },
             {
               "id": "hyphaeAtlas.source.0bd23f152cf90d142716d8c3",
@@ -1081,7 +871,7 @@
               "supportsFindings": []
             }
           ],
-          "coverage": 0.8571428571428571,
+          "coverage": 0.6666666666666666,
           "findingSourceIds": [
             [
               "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
@@ -1099,18 +889,23 @@
               "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
             ],
             [
-              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a"
+              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
+              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
+              "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
             ],
             [
-              "hyphaeAtlas.source.06572a96a58dc510037d5efa",
               "hyphaeAtlas.source.56faf2da914ba1aae0055935"
+            ],
+            [
+              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a"
             ]
           ],
           "findingCoverage": 1,
           "conflictSourceIds": [
             [
               "hyphaeAtlas.source.0bd23f152cf90d142716d8c3",
-              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a"
+              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
+              "hyphaeAtlas.source.56faf2da914ba1aae0055935"
             ]
           ]
         },
@@ -1120,21 +915,18 @@
             "kind": "tool",
             "name": "initial_context",
             "status": "complete",
-            "detail": "Observed Context tool call before the final response."
+            "detail": "Backend-owned MCP call completed before model synthesis."
           },
           {
             "id": "read",
             "kind": "tool",
             "name": "knowledge_base_read",
             "status": "complete",
-            "detail": "Observed retrieval of 7 Knowledge Base entries.",
+            "detail": "Backend retrieved 4 validated Knowledge Base entries.",
             "entries": [
               "performance/g7_certification",
               "capabilities/claim_records",
-              "releases/gate_status",
               "releases/verification",
-              "releases/changelogs",
-              "capabilities/product_specification",
               "performance/baselines"
             ]
           },
@@ -1143,7 +935,7 @@
             "kind": "resolver",
             "name": "evidence_resolver",
             "status": "complete",
-            "detail": "Resolved upstream evidence for 5/5 findings across 8 source documents."
+            "detail": "Resolved upstream evidence for 6/6 findings across 7 source documents."
           },
           {
             "id": "validate",
@@ -1153,7 +945,7 @@
             "detail": "Validated the JSON report schema and per-finding source resolution. This is not independent factual validation of the verdict."
           }
         ],
-        "capturedAt": "2026-09-19T18:04:06.705Z"
+        "capturedAt": "2026-09-19T21:37:24.189Z"
       }
     },
     "es.migration": {
@@ -1169,7 +961,7 @@
         "report": {
           "mode": "migration",
           "verdict": "conditional",
-          "summary": "Hyphae 3.0.0 abre todo directorio Native 2.x. El cambio on-disk no ocurre al abrir, sino con la primera mutación aceptada, que actualiza in situ registros que 2.x no puede leer (p. ej. HYPOST02 y, en búsqueda, HYPSMAN2/HYPSCHK1). Las versiones 2.x no pueden leer directorios escritos por 3.0.0. La seguridad de un downgrade tras esa mutación no está establecida y no debe prometérsela; hay que respaldar antes de mutar.",
+          "summary": "Un directorio Native 2.x se abre con Hyphae 3.0.0. El marcador de directorio Native sigue en formato 1; el cambio on-disk no ocurre al abrir, sino en la primera mutación aceptada (registros que 2.x no puede leer; en búsqueda, HYPSMAN2/HYPSCHK1). Hay que copiar el directorio antes de esa mutación. La seguridad de un downgrade a 2.x no está demostrada.",
           "applicability": {
             "version": "3.0.0",
             "surface": "Native",
@@ -1180,48 +972,59 @@
               "statement": "Todo directorio Native 2.x se abre en Hyphae 3.0.0.",
               "status": "confirmed",
               "qualifiers": [
-                "Aplica a directorios Native con marcador hyphae-native-format=1, no a format-2.",
-                "El runtime Native no abre, convierte ni reinterpreta un directorio format-2 in situ.",
-                "El protocolo local Native de 3.0.0 es minor 6 (aditivo) y no es el disparador del cambio de directorio."
+                "Aplica a la apertura, no a la primera escritura",
+                "El formato de directorio Native permanece en 1"
               ],
               "sourceUrls": [
-                "Changelog § Changelog — Dataset",
-                "Native directory format v1 — Dataset"
-              ]
-            },
-            {
-              "statement": "La primera mutación aceptada en 3.0.0 actualiza in situ registros que las versiones 2.x no pueden leer.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Hay que hacer copia de seguridad antes de aceptar la primera mutación.",
-                "Los directorios escritos por 3.0.0 usan postings HYPOST02 y, tras la primera mutación de búsqueda aceptada, manifiestos fragmentados HYPSMAN2/HYPSCHK1.",
-                "Los manifiestos HYPSMAN1 se leen de forma permanente y se actualizan en la primera mutación aceptada.",
-                "El marcador FORMAT permanece en native format v1; el cambio es de registros internos, no de número de formato."
-              ],
-              "sourceUrls": [
-                "Changelog § Changelog — Dataset",
-                "Import legacy format-2 state into Native — Dataset",
-                "Native directory format v1 — Dataset"
-              ]
-            },
-            {
-              "statement": "Las versiones 2.x no pueden leer directorios escritos por 3.0.0.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Afirmación del changelog de 3.0.0 para directorios escritos por esa versión.",
-                "No equivale a una prueba de reversibilidad de un directorio 2.x mutado una sola vez."
-              ],
-              "sourceUrls": [
+                "Native directory format v1 — Dataset",
+                "Open a Native 2.x directory with Hyphae 3.0 — Dataset",
                 "Changelog § Changelog — Dataset"
               ]
             },
             {
-              "statement": "La compatibilidad de downgrade tras la primera mutación de 3.0 no está establecida; las fuentes no confirman que un directorio mutado por 3.0 siga siendo legible por 2.x.",
+              "statement": "La primera mutación aceptada en 3.0.0 actualiza en el sitio registros que 2.x no puede leer.",
               "status": "confirmed",
               "qualifiers": [
-                "No debe hacerse ninguna promesa de reversibilidad a 2.x.",
-                "La seguridad de un downgrade queda no demostrada.",
-                "La reapertura en 2.x de un directorio 2.x abierto en 3.0.0 sin mutación tampoco está demostrada de forma independiente."
+                "Punto de cambio: primera mutación aceptada, no el open",
+                "Directorios escritos por 3.0.0 usan HYPOST02",
+                "Los manifiestos HYPSMAN1 se leen siempre y pasan a HYPSMAN2/HYPSCHK1 en la primera mutación de búsqueda aceptada"
+              ],
+              "sourceUrls": [
+                "Native directory format v1 — Dataset",
+                "Import legacy format-2 state into Native — Dataset",
+                "Changelog § Changelog — Dataset"
+              ]
+            },
+            {
+              "statement": "Debe hacerse copia de seguridad antes de aceptar la primera mutación en 3.0.",
+              "status": "confirmed",
+              "qualifiers": [
+                "La especificación lo exige de forma explícita"
+              ],
+              "sourceUrls": [
+                "Native directory format v1 — Dataset",
+                "Import legacy format-2 state into Native — Dataset"
+              ]
+            },
+            {
+              "statement": "Las versiones 2.x pueden leer un directorio escrito o mutado por 3.0.0.",
+              "status": "rejected",
+              "qualifiers": [
+                "El changelog 3.0.0 afirma que 2.x no puede leer directorios escritos por 3.0.0",
+                "La especificación no confirma legibilidad 2.x tras la primera mutación 3.0 y prohíbe esa promesa"
+              ],
+              "sourceUrls": [
+                "Changelog § Changelog — Dataset",
+                "Native directory format v1 — Dataset",
+                "Import legacy format-2 state into Native — Dataset"
+              ]
+            },
+            {
+              "statement": "La seguridad de un downgrade 3.0.0 → 2.x está demostrada.",
+              "status": "rejected",
+              "qualifiers": [
+                "Compatibilidad de downgrade no establecida",
+                "Ningún recibo de verification cubre un ciclo de downgrade"
               ],
               "sourceUrls": [
                 "Native directory format v1 — Dataset",
@@ -1231,26 +1034,26 @@
           ],
           "conflicts": [
             {
-              "description": "El changelog de 3.0.0 afirma que las versiones 2.x no pueden leer directorios escritos por 3.0.0, mientras que la especificación de formato indica que la compatibilidad de downgrade tras la primera mutación de 3.0 no está establecida (sin confirmar legibilidad por 2.x).",
-              "resolution": "No combinar ambos textos en una garantía de reversibilidad. Para directorios escritos por 3.0.0, el changelog niega la lectura por 2.x. Para un directorio Native 2.x mutado una vez por 3.0, la autoridad de formato declara el downgrade no establecido. En ambos casos el downgrade no está demostrado ni debe prometérsela.",
+              "description": "La especificación Native format v1 dice que la compatibilidad de downgrade tras la primera mutación 3.0 no está establecida y que no debe prometirse. El changelog 3.0.0 afirma de forma más fuerte que las versiones 2.x no pueden leer directorios escritos por 3.0.0.",
+              "resolution": "No afirmar downgrade. Tratar un directorio escrito o mutado por 3.0.0 como no legible por 2.x. Conservar ambas redacciones en lugar de unificarlas. El punto de no retorno es la primera mutación aceptada, no la mera apertura.",
               "sourceUrls": [
-                "Changelog § Changelog — Dataset",
                 "Native directory format v1 — Dataset",
-                "Import legacy format-2 state into Native — Dataset"
+                "Import legacy format-2 state into Native — Dataset",
+                "Changelog § Changelog — Dataset"
               ]
             }
           ],
           "recommendedActions": [
-            "Respaldar el directorio Native 2.x antes de aceptar la primera mutación en 3.0.0.",
-            "Tratar el primer write aceptado en 3.0.0 como no reversible hacia 2.x.",
-            "No confundir Native 2.x con format-2: el runtime Native no abre ni convierte format-2 in situ.",
-            "Comprobar que el directorio lleva hyphae-native-format=1 y no hyphae-disk-format=."
+            "Hacer una copia de seguridad completa del directorio Native 2.x antes de aceptar cualquier mutación en 3.0.0.",
+            "Si hace falta volver a 2.x, abrir en 3.0.0 solo en lectura y no aceptar la primera mutación.",
+            "No publicar ni operar con la promesa de que un directorio mutado por 3.0.0 sigue siendo legible por 2.x.",
+            "No confundir esta apertura Native 2.x→3.0 con la migración offline format-2 (FORMAT.pending; el runtime Native no convierte format-2 in situ)."
           ],
           "limitations": [
-            "No hay evidencia publicada de que un directorio mutado por 3.0.0 vuelva a ser legible por 2.x.",
-            "La reapertura en 2.x tras un open de 3.0.0 sin mutación no está demostrada de forma independiente.",
-            "Las fixtures on-disk cubren recuperación e inmutabilidad de formatos históricos, no un ciclo de downgrade 3.0→2.x.",
-            "G7 y cifras de rendimiento no aplican a esta pregunta de migración de directorio."
+            "No hay recibos en releases/verification que demuestren un downgrade 3.0.0→2.x.",
+            "El párrafo 2.x-to-3.0 de la especificación de formato apunta al dataset de importación format-2; se conserva esa atribución sin tratar format-2 como Native 2.x.",
+            "El protocolo local Native minor 6 es aditivo en 3.0.0 y no gobierna la apertura del directorio.",
+            "El material Unreleased posterior a 3.0.0 no prueba capacidad publicada."
           ],
           "sources": [
             {
@@ -1260,13 +1063,13 @@
               "commit": null
             },
             {
-              "title": "Native Directory Format v1 Spec",
+              "title": "Open a Native 2.x directory with Hyphae 3.0 — Dataset",
               "url": "Open a Native 2.x directory with Hyphae 3.0 — Dataset",
               "path": "storage/format_spec",
               "commit": null
             },
             {
-              "title": "Native Directory Format v1 Spec",
+              "title": "Import legacy format-2 state into Native — Dataset",
               "url": "Import legacy format-2 state into Native — Dataset",
               "path": "storage/format_spec",
               "commit": null
@@ -1278,7 +1081,7 @@
               "commit": "24bce1accdff8d14127797afe6f237a57c1cd4f3"
             },
             {
-              "title": "Release Changelogs",
+              "title": "hyphaeAtlas.release.3-0-0 — Dataset",
               "url": "hyphaeAtlas.release.3-0-0 — Dataset",
               "path": "releases/changelogs",
               "commit": "24bce1accdff8d14127797afe6f237a57c1cd4f3"
@@ -1291,8 +1094,8 @@
             "initial_context",
             "knowledge_base_read"
           ],
-          "model": "grok-4.6",
-          "durationMs": 125323
+          "model": "xai/grok-4.6",
+          "durationMs": 109953
         },
         "evidence": {
           "sources": [
@@ -1329,8 +1132,25 @@
               "supportsFindings": [
                 0,
                 1,
-                3
+                2,
+                3,
+                4
               ]
+            },
+            {
+              "id": "hyphaeAtlas.source.74ac9aaac7b567b361c5a934",
+              "title": "Native capabilities and limits",
+              "path": "docs/product/native-capabilities.md",
+              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/docs/product/native-capabilities.md",
+              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
+              "digest": "43c2f7945727a086b51d10b997fdd25c2505f950b087d3e69596cf78e9957818",
+              "license": "CC-BY-SA-4.0",
+              "lifecycleStatus": "published",
+              "authorityRank": 95,
+              "matchedBy": [
+                "structured-reference"
+              ],
+              "supportsFindings": []
             },
             {
               "id": "hyphaeAtlas.source.930cfaf0b684f95dd8939b5e",
@@ -1347,7 +1167,9 @@
               ],
               "supportsFindings": [
                 1,
-                3
+                2,
+                3,
+                4
               ]
             },
             {
@@ -1362,12 +1184,13 @@
               "authorityRank": 70,
               "matchedBy": [
                 "canonical-citation",
-                "knowledge-base-entry"
+                "knowledge-base-entry",
+                "structured-reference"
               ],
               "supportsFindings": [
                 0,
                 1,
-                2
+                3
               ]
             },
             {
@@ -1381,24 +1204,34 @@
               "lifecycleStatus": "published",
               "authorityRank": 50,
               "matchedBy": [
-                "knowledge-base-entry"
+                "knowledge-base-entry",
+                "structured-reference"
               ],
-              "supportsFindings": []
+              "supportsFindings": [
+                0
+              ]
             }
           ],
           "coverage": 1,
           "findingSourceIds": [
             [
-              "hyphaeAtlas.source.06572a96a58dc510037d5efa",
-              "hyphaeAtlas.source.40a6987af2e16fd0703810dc"
+              "hyphaeAtlas.source.40a6987af2e16fd0703810dc",
+              "hyphaeAtlas.source.b335630551682c19a781afeb",
+              "hyphaeAtlas.source.06572a96a58dc510037d5efa"
+            ],
+            [
+              "hyphaeAtlas.source.40a6987af2e16fd0703810dc",
+              "hyphaeAtlas.source.930cfaf0b684f95dd8939b5e",
+              "hyphaeAtlas.source.06572a96a58dc510037d5efa"
+            ],
+            [
+              "hyphaeAtlas.source.40a6987af2e16fd0703810dc",
+              "hyphaeAtlas.source.930cfaf0b684f95dd8939b5e"
             ],
             [
               "hyphaeAtlas.source.06572a96a58dc510037d5efa",
               "hyphaeAtlas.source.40a6987af2e16fd0703810dc",
               "hyphaeAtlas.source.930cfaf0b684f95dd8939b5e"
-            ],
-            [
-              "hyphaeAtlas.source.06572a96a58dc510037d5efa"
             ],
             [
               "hyphaeAtlas.source.40a6987af2e16fd0703810dc",
@@ -1408,9 +1241,9 @@
           "findingCoverage": 1,
           "conflictSourceIds": [
             [
-              "hyphaeAtlas.source.06572a96a58dc510037d5efa",
               "hyphaeAtlas.source.40a6987af2e16fd0703810dc",
-              "hyphaeAtlas.source.930cfaf0b684f95dd8939b5e"
+              "hyphaeAtlas.source.930cfaf0b684f95dd8939b5e",
+              "hyphaeAtlas.source.06572a96a58dc510037d5efa"
             ]
           ]
         },
@@ -1420,19 +1253,18 @@
             "kind": "tool",
             "name": "initial_context",
             "status": "complete",
-            "detail": "Observed Context tool call before the final response."
+            "detail": "Backend-owned MCP call completed before model synthesis."
           },
           {
             "id": "read",
             "kind": "tool",
             "name": "knowledge_base_read",
             "status": "complete",
-            "detail": "Observed retrieval of 4 Knowledge Base entries.",
+            "detail": "Backend retrieved 3 validated Knowledge Base entries.",
             "entries": [
               "storage/format_spec",
               "releases/changelogs",
-              "capabilities/product_specification",
-              "storage/fixtures"
+              "releases/verification"
             ]
           },
           {
@@ -1440,7 +1272,7 @@
             "kind": "resolver",
             "name": "evidence_resolver",
             "status": "complete",
-            "detail": "Resolved upstream evidence for 4/4 findings across 5 source documents."
+            "detail": "Resolved upstream evidence for 5/5 findings across 6 source documents."
           },
           {
             "id": "validate",
@@ -1450,7 +1282,7 @@
             "detail": "Validated the JSON report schema and per-finding source resolution. This is not independent factual validation of the verdict."
           }
         ],
-        "capturedAt": "2026-09-19T18:06:13.780Z"
+        "capturedAt": "2026-09-19T21:39:14.697Z"
       }
     },
     "es.capability": {
@@ -1467,7 +1299,7 @@
         "report": {
           "mode": "capability",
           "verdict": "conditional",
-          "summary": "El adaptador MCP Native de Hyphae 3.0.0 (contrato v2) no permite herramientas de escritura por defecto: es de solo lectura. Las herramientas de mutación solo se exponen si hay un flag explícito y la clave lleva data.write. Aplica límites duros de 4 MiB de entrada y de salida, una llamada activa y una respuesta pendiente. Hay una contradicción documentada sobre si el contrato publicado incluye herramientas de mutación.",
+          "summary": "El adaptador MCP Native de Hyphae 3.0.0 no permite herramientas de escritura por defecto: es de solo lectura. Las herramientas de escritura se listan y pueden invocarse solo si se cumple a la vez el flag de perfil (--allow-ingest en el registro completo; --allow-write en el perfil memory) y la clave durable lleva data.write. Una clave Reader o Auditor recibe denegación tipificada aunque el flag esté presente. Los límites documentados son 1 llamada activa, 1 respuesta pendiente, 4 MiB de entrada y 4 MiB de salida, página tools/list de 100 y tareas MCP prohibidas. Hay un conflicto documental sobre el nombre del flag que habilita las herramientas de memoria de escritura.",
           "applicability": {
             "version": "3.0.0",
             "surface": "Native MCP",
@@ -1475,25 +1307,47 @@
           },
           "findings": [
             {
-              "statement": "El adaptador MCP Native es de solo lectura por defecto y no expone herramientas de escritura sin flags explícitos.",
+              "statement": "El adaptador es de solo lectura por defecto; ocho herramientas se listan sin flags.",
               "status": "confirmed",
               "qualifiers": [
                 "Introducido en la versión 3.0.0",
-                "Ocho herramientas se listan sin flags",
-                "El plugin de agente versionado no pasa --allow-ingest y permanece en solo lectura"
+                "El plugin de agente empaquetado nunca pasa --allow-ingest y permanece de solo lectura"
               ],
               "sourceUrls": [
-                "Native MCP adapter — Dataset",
-                "Bounded Native MCP adapter — Dataset"
+                "Bounded Native MCP adapter — Dataset",
+                "Native MCP adapter — Dataset"
               ]
             },
             {
-              "statement": "En el registro completo, las herramientas de escritura hyphae_native_search_ingest, hyphae_native_memory_store y hyphae_native_memory_forget solo se listan y pueden invocarse con --allow-ingest y una clave cuya autoridad durable incluye data.write (rol Writer).",
+              "statement": "Las herramientas de escritura se exponen solo cuando se pasa el flag apropiado y la autoridad durable de la clave lleva data.write (rol Writer integrado).",
+              "status": "confirmed",
+              "qualifiers": [
+                "Perfil completo: --allow-ingest",
+                "Perfil memory: --allow-write",
+                "Una clave Reader o Auditor recibe denegación tipificada aunque el flag esté presente",
+                "La clave de API es la única autoridad del proceso; los argumentos de herramienta no pueden suministrar otra clave, principal, rol o permiso"
+              ],
+              "sourceUrls": [
+                "Native MCP adapter — Dataset"
+              ]
+            },
+            {
+              "statement": "En el registro completo de 11 herramientas, hyphae_native_search_ingest, hyphae_native_memory_store y hyphae_native_memory_forget tienen readOnlyHint: false y solo se listan o invocan con --allow-ingest y autoridad de escritura.",
+              "status": "confirmed",
+              "qualifiers": [
+                "Las demás herramientas del inventario se documentan como de solo lectura",
+                "hyphae_native_search_ingest ingiere un lote acotado e idempotente (1–256 documentos)"
+              ],
+              "sourceUrls": [
+                "native-mcp-v2.json § native-mcp-v2.json › content — Dataset"
+              ]
+            },
+            {
+              "statement": "En el perfil memory, recall y status se listan siempre; store, journal y forget se listan solo con --allow-write y siguen exigiendo clave con autoridad de escritura.",
               "status": "conditional",
               "qualifiers": [
-                "Una clave Reader o Auditor recibe denegación tipada aunque el flag esté presente",
-                "readOnlyHint: false en esas tres herramientas",
-                "La autoridad no puede suministrarse por argumentos de herramienta ni por el prompt"
+                "El perfil memory sustituye el registro completo por una superficie de cinco herramientas",
+                "Los contratos del inventario de 11 herramientas atribuyen hyphae_native_memory_store y hyphae_native_memory_forget a --allow-ingest, no a --allow-write"
               ],
               "sourceUrls": [
                 "Native MCP adapter — Dataset",
@@ -1501,36 +1355,26 @@
               ]
             },
             {
-              "statement": "En el perfil memory (--profile memory), store, journal y forget se listan solo con --allow-write y siguen exigiendo autoridad de escritura en la clave; recall y status se listan siempre.",
-              "status": "conditional",
-              "qualifiers": [
-                "El perfil memory sustituye el registro completo por la superficie de cinco herramientas de Agent Memory",
-                "No se unifica el nombre del flag con --allow-ingest del perfil completo"
-              ],
-              "sourceUrls": [
-                "Native MCP adapter — Dataset"
-              ]
-            },
-            {
-              "statement": "El contrato MCP v2 fija límites de 4.194.304 bytes (4 MiB) de entrada, 4.194.304 bytes (4 MiB) de salida, 1 llamada de herramienta activa y 1 respuesta pendiente; una segunda llamada se rechaza de inmediato y no se encola; las MCP tasks están prohibidas.",
+              "statement": "Límites de recurso del adaptador: 4 MiB de entrada, 4 MiB de salida, 1 llamada de herramienta activa y 1 respuesta pendiente; una segunda llamada se rechaza de inmediato, no se encola.",
               "status": "confirmed",
               "qualifiers": [
-                "Transporte: JSON-RPC 2.0 delimitado por líneas sobre stdin/stdout",
-                "Revisión MCP anunciada: 2025-06-18",
-                "Tamaño de página de tools/list: máximo fijo 100",
-                "Identificador de contrato: hyphae-native-mcp-contract-v2"
+                "input_bytes y output_bytes = 4.194.304",
+                "Tamaño de página de tools/list fijo en 100 definiciones",
+                "Tareas MCP prohibidas (taskSupport: forbidden)",
+                "Revisión MCP anunciada 2025-06-18",
+                "Contrato hyphae-native-mcp-contract-v2 / herramientas hyphae-native-mcp-tools-v4"
               ],
               "sourceUrls": [
-                "native-mcp-v2.json § native-mcp-v2.json › content — Dataset",
-                "Native MCP adapter — Dataset"
+                "Native MCP adapter — Dataset",
+                "native-mcp-v2.json § native-mcp-v2.json › content — Dataset"
               ]
             },
             {
               "statement": "El adaptador no admite concurrencia ilimitada ni escalada de autoridad suministrada por el prompt.",
               "status": "confirmed",
               "qualifiers": [
-                "Campos de entrada desconocidos fallan cerrados",
-                "La clave de API es la única autoridad del proceso"
+                "Los campos de entrada desconocidos fallan cerrados",
+                "No abre un directorio de datos, no inicia un listener y no acepta un token bearer format-2"
               ],
               "sourceUrls": [
                 "Bounded Native MCP adapter — Dataset",
@@ -1540,17 +1384,8 @@
           ],
           "conflicts": [
             {
-              "description": "La entrada protocols/mcp afirma que el contrato normativo native-mcp-v2.json no contiene herramienta de mutación y que las once herramientas son de solo lectura, mientras que mcp_protocol_and_adapter/tool_schemas_and_contracts documenta tres herramientas con readOnlyHint false (hyphae_native_search_ingest, hyphae_native_memory_store, hyphae_native_memory_forget) y mcp_protocol_and_adapter/adapter_setup_and_operation describe su exposición condicional.",
-              "resolution": "No se combinan las afirmaciones. El solo lectura por defecto está respaldado de forma consistente. La redacción del contrato que niega herramientas de mutación se registra como contradicción; no hay decisión de autoridad documentada que la resuelva, así que no se afirma ni que el contrato v2 carezca de escritura ni que la escritura con flags esté libre de disputa contractual.",
-              "sourceUrls": [
-                "Public contracts — Dataset",
-                "native-mcp-v2.json § native-mcp-v2.json › content — Dataset",
-                "Native MCP adapter — Dataset"
-              ]
-            },
-            {
-              "description": "Los esquemas de herramientas indican que hyphae_native_memory_store y hyphae_native_memory_forget requieren --allow-ingest, mientras que la operación del adaptador indica --allow-write para store, journal y forget en el perfil memory.",
-              "resolution": "Se tratan como superficies distintas y no se unifica el nombre del flag: el registro de once herramientas usa --allow-ingest; el perfil memory sustituye ese registro y usa --allow-write.",
+              "description": "adapter_setup_and_operation indica --allow-write para listar store, journal y forget en el perfil memory, mientras tool_schemas_and_contracts exige --allow-ingest y autoridad de escritura para hyphae_native_memory_store y hyphae_native_memory_forget.",
+              "resolution": "No unificar los nombres de flag. Tratar --allow-ingest como el cierre del registro completo y --allow-write como el cierre del perfil memory según la prosa de arranque. El estado de solo lectura por defecto no queda afectado. Sin una decisión de autoridad documentada, el nombre de flag aplicable a las herramientas de memoria de escritura permanece contradictorio entre fuentes.",
               "sourceUrls": [
                 "Native MCP adapter — Dataset",
                 "native-mcp-v2.json § native-mcp-v2.json › content — Dataset"
@@ -1558,15 +1393,16 @@
             }
           ],
           "recommendedActions": [
-            "Si el agente debe permanecer en solo lectura, no pasar --allow-ingest ni --allow-write.",
-            "Emitir una clave cuya autoridad durable coincida con las herramientas necesarias; Reader o Auditor no obtienen data.write.",
-            "No afirmar que el contrato v2 carece de herramientas de mutación ni que la escritura con flags está libre de disputa: hay contradicción entre protocols/mcp y los esquemas de herramientas.",
-            "Verificar en initialize y tools/list el identificador hyphae-native-mcp-contract-v2 y el digest del contrato."
+            "Arrancar hyphae mcp sin --allow-ingest y sin --allow-write si se requiere el comportamiento por defecto de solo lectura.",
+            "Emitir una clave Auditor o Reader si se debe denegar mutación incluso cuando un operador pase un flag de escritura.",
+            "No asumir que el perfil memory usa el mismo flag que el registro completo de 11 herramientas.",
+            "Tratar como no probada cualquier afirmación de que las herramientas de escritura están habilitadas por defecto en Native MCP 3.0.0."
           ],
           "limitations": [
-            "La matriz de capacidades G6 de 3.0.0 no enumera MCP como superficie requerida; el adaptador es stdio sobre un servicio Native ya en ejecución y no abre un directorio de datos.",
-            "No hay decisión de autoridad documentada que resuelva si native-mcp-v2.json incluye o excluye herramientas de mutación.",
-            "Este informe resume los límites de proceso del adaptador; los topes por herramienta (por ejemplo 256 documentos por ingest o 4096 caracteres de texto) están en los esquemas y no se reiteran todos aquí."
+            "La especificación de producto G6 no detalla los flags de escritura del adaptador MCP; el cierre de escritura se toma de las fuentes MCP.",
+            "El inventario de 11 herramientas y la superficie de cinco herramientas del perfil memory no son el mismo registro y no deben combinarse en silencio.",
+            "No hay en el material recuperado un recibo de gate que anule la prosa de solo lectura por defecto.",
+            "El conflicto de nombre de flag (--allow-ingest frente a --allow-write) no tiene una decisión de autoridad documentada."
           ],
           "sources": [
             {
@@ -1588,9 +1424,9 @@
               "commit": null
             },
             {
-              "title": "MCP Adapter and Tool Contracts",
-              "url": "Public contracts — Dataset",
-              "path": "protocols/mcp",
+              "title": "Native MCP Adapter Setup and Operation",
+              "url": "Native MCP bounded tool contract — Dataset",
+              "path": "mcp_protocol_and_adapter/adapter_setup_and_operation",
               "commit": null
             },
             {
@@ -1607,8 +1443,8 @@
             "initial_context",
             "knowledge_base_read"
           ],
-          "model": "grok-4.6",
-          "durationMs": 105327
+          "model": "xai/grok-4.6",
+          "durationMs": 110240
         },
         "evidence": {
           "sources": [
@@ -1629,424 +1465,6 @@
               ],
               "supportsFindings": [
                 0,
-                1,
-                3,
-                4
-              ]
-            },
-            {
-              "id": "hyphaeAtlas.source.0cb8bbee996b9760c635a26e",
-              "title": "Native local product contract v1",
-              "path": "docs/native/local-product-v1.md",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/docs/native/local-product-v1.md",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "2758727a1a6263562f67462cd2460a23409bbacc89048194c12746a3c820906d",
-              "license": "Apache-2.0",
-              "lifecycleStatus": "published",
-              "authorityRank": 95,
-              "matchedBy": [
-                "knowledge-base-entry"
-              ],
-              "supportsFindings": []
-            },
-            {
-              "id": "hyphaeAtlas.source.74ac9aaac7b567b361c5a934",
-              "title": "Native capabilities and limits",
-              "path": "docs/product/native-capabilities.md",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/docs/product/native-capabilities.md",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "43c2f7945727a086b51d10b997fdd25c2505f950b087d3e69596cf78e9957818",
-              "license": "CC-BY-SA-4.0",
-              "lifecycleStatus": "published",
-              "authorityRank": 95,
-              "matchedBy": [
-                "knowledge-base-entry"
-              ],
-              "supportsFindings": []
-            },
-            {
-              "id": "hyphaeAtlas.source.ade534f3be7a8d62d9e06a68",
-              "title": "Public contracts",
-              "path": "contracts/README.md",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/contracts/README.md",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "2ea6994b998c001ced5bf41253c961841152ccff93b9b5df4286954acf498cc8",
-              "license": "CC-BY-SA-4.0",
-              "lifecycleStatus": "published",
-              "authorityRank": 85,
-              "matchedBy": [
-                "canonical-citation",
-                "knowledge-base-entry"
-              ],
-              "supportsFindings": []
-            },
-            {
-              "id": "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
-              "title": "Native MCP adapter",
-              "path": "mcp/README.md",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/mcp/README.md",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "a2b1196daf8a7a6e3a772a078e0aa25c73afd0eb57e04121b90f22776e2be3bd",
-              "license": "CC-BY-SA-4.0",
-              "lifecycleStatus": "published",
-              "authorityRank": 80,
-              "matchedBy": [
-                "canonical-citation",
-                "knowledge-base-entry",
-                "structured-reference"
-              ],
-              "supportsFindings": [
-                0,
-                1,
-                2,
-                3,
-                4
-              ]
-            }
-          ],
-          "coverage": 1,
-          "findingSourceIds": [
-            [
-              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
-              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
-            ],
-            [
-              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
-              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
-            ],
-            [
-              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27"
-            ],
-            [
-              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3",
-              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27"
-            ],
-            [
-              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
-              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
-            ]
-          ],
-          "findingCoverage": 1,
-          "conflictSourceIds": [
-            [
-              "hyphaeAtlas.source.ade534f3be7a8d62d9e06a68",
-              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3",
-              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27"
-            ],
-            [
-              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
-              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
-            ]
-          ]
-        },
-        "trace": [
-          {
-            "id": "orient",
-            "kind": "tool",
-            "name": "initial_context",
-            "status": "complete",
-            "detail": "Observed Context tool call before the final response."
-          },
-          {
-            "id": "read",
-            "kind": "tool",
-            "name": "knowledge_base_read",
-            "status": "complete",
-            "detail": "Observed retrieval of 4 Knowledge Base entries.",
-            "entries": [
-              "mcp_protocol_and_adapter/adapter_setup_and_operation",
-              "mcp_protocol_and_adapter/tool_schemas_and_contracts",
-              "protocols/mcp",
-              "capabilities/product_specification"
-            ]
-          },
-          {
-            "id": "resolve",
-            "kind": "resolver",
-            "name": "evidence_resolver",
-            "status": "complete",
-            "detail": "Resolved upstream evidence for 5/5 findings across 5 source documents."
-          },
-          {
-            "id": "validate",
-            "kind": "validation",
-            "name": "schema_validation",
-            "status": "complete",
-            "detail": "Validated the JSON report schema and per-finding source resolution. This is not independent factual validation of the verdict."
-          }
-        ],
-        "capturedAt": "2026-09-19T18:08:00.788Z"
-      }
-    },
-    "es.claim": {
-      "label": "Afirmación de latencia G7",
-      "query": {
-        "mode": "claim",
-        "locale": "es",
-        "question": "¿Podemos citar G7 como certificación de latencia portable o en hardware dedicado para Hyphae 3.0.0?",
-        "targetVersion": "3.0.0"
-      },
-      "result": {
-        "report": {
-          "mode": "claim",
-          "verdict": "unsupported",
-          "summary": "No. En Hyphae 3.0.0 no se puede citar G7 como certificación de latencia portable ni de latencia en hardware dedicado. Esa forma de claim está clasificada como prohibida: la evidencia G7 se limita a una máquina virtual DigitalOcean C-60 (cierre operativo virtualizado, artefacto hyphaeAtlas.evidence.g7-c60) y no se extiende más allá de ese entorno. Las redacciones «portable latency», «dedicated-hardware latency certified» y «bare-metal performance certified» están prohibidas incluso con calificadores; usarlas es una violación de certificación. G7 sí está cerrado como gate (commit ff188af, 11/11 superficies y 33/33 celdas C-60), pero ese cierre es environment-bound y no constituye certificación de latencia.",
-          "applicability": {
-            "version": "3.0.0",
-            "surface": null,
-            "protocolMinor": null
-          },
-          "findings": [
-            {
-              "statement": "Citar G7 como certificación de latencia portable o en hardware dedicado para Hyphae 3.0.0 no está permitido.",
-              "status": "rejected",
-              "qualifiers": [
-                "Alcance de versión: Hyphae 3.0.0 únicamente",
-                "Incluso una formulación cualificada es violación de certificación"
-              ],
-              "sourceUrls": [
-                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
-              ]
-            },
-            {
-              "statement": "La certificación G7 de Hyphae 3.0.0 está clasificada como claim prohibido para latencia portable o en hardware dedicado; la evidencia se limita estrictamente a una máquina virtual DigitalOcean C-60 bajo el cierre operativo virtualizado hyphaeAtlas.evidence.g7-c60.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Ninguna certificación de latencia se extiende más allá de ese entorno"
-              ],
-              "sourceUrls": [
-                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
-              ]
-            },
-            {
-              "statement": "Las redacciones «portable latency», «dedicated-hardware latency certified» y «bare-metal performance certified» están explícitamente prohibidas en cualquier referencia conforme a evidencia G7.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Hacer cualquiera de estos claims —incluso cualificado— es una violación de certificación para Hyphae 3.0.0"
-              ],
-              "sourceUrls": [
-                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
-              ]
-            },
-            {
-              "statement": "G7 está cerrado: 11/11 superficies y 33/33 celdas operativas C-60; el alcance es environment-bound, sin certificación de hardware dedicado, interferencia o latencia canónica.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Commit de cierre G7: ff188af",
-                "Archivo de evidencia: docs/gates/evidence/closures/native-g7-ff188af.json",
-                "SHA-256: 30edf0499408d38b2902d9b9ec67ec769c2a68d98e365f230a074a0896fe617a",
-                "G7 se cerró desde la ejecución C-60 ligada a fuente después de que el intento final bare-metal fallara antes de la medición de producto"
-              ],
-              "sourceUrls": [
-                "Native gate status — Dataset",
-                "native-gate-status.json — Dataset"
-              ]
-            },
-            {
-              "statement": "Cualquier referencia conforme a evidencia G7 de latencia debe incluir los tres calificadores obligatorios: evidencia de escala operativa virtualizada (solo DigitalOcean C-60); declaración explícita de que G7 no constituye una certificación de latencia; y la salvedad de que el perfil G7 es anterior al trabajo posterior de control de acceso.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Clase de evidencia: Virtualized operational scale",
-                "Citable solo con el calificador explícito «virtualized, no latency certification»"
-              ],
-              "sourceUrls": [
-                "hyphaeAtlas.claim.g7-portable-latency — Dataset",
-                "Canonical claims and non-claims — Dataset"
-              ]
-            },
-            {
-              "statement": "El perfil G7 cerrado certifica la matriz de escala operativa sin autorización por operación; se cerró en un commit anterior a 1.2. Las claims de rendimiento para v1.2.x y posteriores, incluida 3.0.0, deben citar ese perfil acotado o esperar una re-ejecución G7 en un commit de release que lleve el trabajo añadido.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Commit G7: ff188af",
-                "Commit de release 3.0.0: 24bce1accdff8d14127797afe6f237a57c1cd4f3",
-                "Debe ligarse a un recibo bajo el vocabulario de docs/product/claims.md"
-              ],
-              "sourceUrls": [
-                "Native gate status — Dataset",
-                "G7 virtualized operational-scale closure — Dataset"
-              ]
-            },
-            {
-              "statement": "Los recibos de hardware dedicado publicados en el changelog de 3.0.0 (hardware i7i.metal-24xl, commit a443c52, recibo hyphae-3.0-metal-a443c52-2026-09-03.md) pertenecen a la clase de evidencia Dedicated hardware y no son certificación G7.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Solo la clase Dedicated hardware admite comparaciones, y cada afirmación nombra su recibo",
-                "G7 es la clase Virtualized operational scale, no Dedicated hardware"
-              ],
-              "sourceUrls": [
-                "Changelog § Changelog — Dataset",
-                "Canonical claims and non-claims — Dataset"
-              ]
-            }
-          ],
-          "conflicts": [
-            {
-              "description": "performance/baselines afirma que el estado actual es un contrato de objetivos y que «no G7 performance gate has passed» / «none passes G7», mientras que releases/gate_status y releases/verification registran G7 cerrado en ff188af con 11/11 superficies y 33/33 celdas C-60.",
-              "resolution": "La entrada actual de evidencia/gates y los recibos de release prevalecen para el estado de cierre: G7 está cerrado. La prosa de baselines se trata como obsoleta respecto al cierre, se conserva como conflicto, y no se afirma que G7 esté abierto. El cierre no autoriza claims de latencia portable ni de hardware dedicado.",
-              "sourceUrls": [
-                "Microsecond-first performance contract § Microsecond-first performance contract — Dataset",
-                "Native gate status — Dataset",
-                "G7 virtualized operational-scale closure — Dataset"
-              ]
-            },
-            {
-              "description": "El changelog 3.0.0 sección Measured publica cifras de hardware dedicado (i7i.metal-24xl, commit a443c52), mientras que G7 es autoridad C-60 virtualizada y prohíbe citarse como latencia en hardware dedicado.",
-              "resolution": "No se combinan. G7 permanece en la clase Virtualized operational scale (sin certificación de latencia). Los recibos metal son otra clase de evidencia y no convierten a G7 en certificación portable o de hardware dedicado.",
-              "sourceUrls": [
-                "Changelog § Changelog — Dataset",
-                "hyphaeAtlas.claim.g7-portable-latency — Dataset",
-                "Canonical claims and non-claims — Dataset"
-              ]
-            }
-          ],
-          "recommendedActions": [
-            "No citar G7 como certificación de latencia portable, de hardware dedicado o bare-metal para Hyphae 3.0.0.",
-            "Si se menciona evidencia G7, incluir los tres calificadores obligatorios: contexto DigitalOcean C-60 virtualizado; que G7 no constituye certificación de latencia; y que el perfil predice el control de acceso posterior.",
-            "Separar G7 (clase virtualizada C-60, commit ff188af) de los recibos de hardware dedicado de 3.0.0 (i7i.metal-24xl, commit a443c52); no usar unos para sostener el otro.",
-            "Para claims de rendimiento de 3.0.0, citar explícitamente el perfil G7 acotado pre-1.2 o esperar una re-ejecución G7 en un commit de release que incluya el control de acceso, ligada a un recibo bajo docs/product/claims.md."
-          ],
-          "limitations": [
-            "El cierre G7 está en el commit ff188af, no en el commit de release 3.0.0 24bce1accdff8d14127797afe6f237a57c1cd4f3.",
-            "El perfil G7 cerrado no incluye autorización por operación.",
-            "La clasificación de claim de este informe aplica a Hyphae 3.0.0 únicamente.",
-            "Los números y la metodología de baselines no sustituyen el alcance de certificación G7."
-          ],
-          "sources": [
-            {
-              "title": "G7 Certification Scope and Claim Limits",
-              "url": "hyphaeAtlas.claim.g7-portable-latency — Dataset",
-              "path": "performance/g7_certification",
-              "commit": null
-            },
-            {
-              "title": "Gate Closure Status Index",
-              "url": "Native gate status — Dataset",
-              "path": "releases/gate_status",
-              "commit": "ff188af"
-            },
-            {
-              "title": "Gate Closure Status Index",
-              "url": "native-gate-status.json — Dataset",
-              "path": "releases/gate_status",
-              "commit": "ff188af"
-            },
-            {
-              "title": "Normative Claim Records and Non-Claims",
-              "url": "Canonical claims and non-claims — Dataset",
-              "path": "capabilities/claim_records",
-              "commit": null
-            },
-            {
-              "title": "Release Verification and Attestation",
-              "url": "G7 virtualized operational-scale closure — Dataset",
-              "path": "releases/verification",
-              "commit": "ff188af"
-            },
-            {
-              "title": "Release Changelogs",
-              "url": "Changelog § Changelog — Dataset",
-              "path": "releases/changelogs",
-              "commit": "24bce1accdff8d14127797afe6f237a57c1cd4f3"
-            },
-            {
-              "title": "Latency Baselines and Measurement Protocol",
-              "url": "Microsecond-first performance contract § Microsecond-first performance contract — Dataset",
-              "path": "performance/baselines",
-              "commit": null
-            },
-            {
-              "title": "G6 Product Specification and Scope",
-              "url": "Native local product contract v1 — Dataset",
-              "path": "capabilities/product_specification",
-              "commit": "24bce1accdff8d14127797afe6f237a57c1cd4f3"
-            }
-          ]
-        },
-        "retrieval": {
-          "mode": "sanity-context-mcp",
-          "toolsUsed": [
-            "initial_context",
-            "knowledge_base_read"
-          ],
-          "model": "grok-4.6",
-          "durationMs": 108150
-        },
-        "evidence": {
-          "sources": [
-            {
-              "id": "hyphaeAtlas.source.33bd399fa01dfd572d96c4b7",
-              "title": "native-gate-status.json",
-              "path": "config/native-gate-status.json",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/config/native-gate-status.json",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "ad622b1013606880d323c999121e219cc6b0f3f68f81ba3300d3e61c70ee7364",
-              "license": "Apache-2.0",
-              "lifecycleStatus": "published",
-              "authorityRank": 100,
-              "matchedBy": [
-                "canonical-citation"
-              ],
-              "supportsFindings": [
-                3
-              ]
-            },
-            {
-              "id": "hyphaeAtlas.source.56faf2da914ba1aae0055935",
-              "title": "Canonical claims and non-claims",
-              "path": "docs/product/claims.md",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/docs/product/claims.md",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "69946a37a90598a09017c1d218bd9622721f5bb05e48c7706a755d1dd5a6ac83",
-              "license": "CC-BY-SA-4.0",
-              "lifecycleStatus": "published",
-              "authorityRank": 100,
-              "matchedBy": [
-                "canonical-citation",
-                "knowledge-base-entry",
-                "structured-reference"
-              ],
-              "supportsFindings": [
-                0,
-                1,
-                2,
-                4,
-                6
-              ]
-            },
-            {
-              "id": "hyphaeAtlas.source.d97e76f790cb66a316b3461a",
-              "title": "Hyphae 3.0.0 publication receipt",
-              "path": "docs/release/receipts/3.0.0.md",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/docs/release/receipts/3.0.0.md",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "c7cddd6bde6332faba92ee0a6388172a0d1d19afe0a94db94564a698cf1251a2",
-              "license": "CC-BY-SA-4.0",
-              "lifecycleStatus": "published",
-              "authorityRank": 100,
-              "matchedBy": [
-                "knowledge-base-entry"
-              ],
-              "supportsFindings": []
-            },
-            {
-              "id": "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
-              "title": "Native gate status",
-              "path": "docs/gates/native-gate-status.md",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/docs/gates/native-gate-status.md",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "c51fbbfedaea0dc6692b88ed41e84fc7d5439125c822a778844d70948d945d0f",
-              "license": "CC-BY-SA-4.0",
-              "lifecycleStatus": "published",
-              "authorityRank": 95,
-              "matchedBy": [
-                "canonical-citation",
-                "knowledge-base-entry",
-                "structured-reference"
-              ],
-              "supportsFindings": [
-                0,
-                1,
                 2,
                 3,
                 4,
@@ -2079,6 +1497,268 @@
               "lifecycleStatus": "published",
               "authorityRank": 95,
               "matchedBy": [
+                "knowledge-base-entry"
+              ],
+              "supportsFindings": []
+            },
+            {
+              "id": "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
+              "title": "Native MCP adapter",
+              "path": "mcp/README.md",
+              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/mcp/README.md",
+              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
+              "digest": "a2b1196daf8a7a6e3a772a078e0aa25c73afd0eb57e04121b90f22776e2be3bd",
+              "license": "CC-BY-SA-4.0",
+              "lifecycleStatus": "published",
+              "authorityRank": 80,
+              "matchedBy": [
+                "canonical-citation",
+                "knowledge-base-entry",
+                "structured-reference"
+              ],
+              "supportsFindings": [
+                0,
+                1,
+                3,
+                4,
+                5
+              ]
+            }
+          ],
+          "coverage": 1,
+          "findingSourceIds": [
+            [
+              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
+              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
+            ],
+            [
+              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27"
+            ],
+            [
+              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
+            ],
+            [
+              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
+              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
+            ],
+            [
+              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
+              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
+            ],
+            [
+              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
+              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
+            ]
+          ],
+          "findingCoverage": 1,
+          "conflictSourceIds": [
+            [
+              "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
+              "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
+            ]
+          ]
+        },
+        "trace": [
+          {
+            "id": "orient",
+            "kind": "tool",
+            "name": "initial_context",
+            "status": "complete",
+            "detail": "Backend-owned MCP call completed before model synthesis."
+          },
+          {
+            "id": "read",
+            "kind": "tool",
+            "name": "knowledge_base_read",
+            "status": "complete",
+            "detail": "Backend retrieved 3 validated Knowledge Base entries.",
+            "entries": [
+              "mcp_protocol_and_adapter/adapter_setup_and_operation",
+              "mcp_protocol_and_adapter/tool_schemas_and_contracts",
+              "capabilities/product_specification"
+            ]
+          },
+          {
+            "id": "resolve",
+            "kind": "resolver",
+            "name": "evidence_resolver",
+            "status": "complete",
+            "detail": "Resolved upstream evidence for 6/6 findings across 4 source documents."
+          },
+          {
+            "id": "validate",
+            "kind": "validation",
+            "name": "schema_validation",
+            "status": "complete",
+            "detail": "Validated the JSON report schema and per-finding source resolution. This is not independent factual validation of the verdict."
+          }
+        ],
+        "capturedAt": "2026-09-19T21:41:05.324Z"
+      }
+    },
+    "es.claim": {
+      "label": "Afirmación de latencia G7",
+      "query": {
+        "mode": "claim",
+        "locale": "es",
+        "question": "¿Podemos citar G7 como certificación de latencia portable o en hardware dedicado para Hyphae 3.0.0?",
+        "targetVersion": "3.0.0"
+      },
+      "result": {
+        "report": {
+          "mode": "claim",
+          "verdict": "unsupported",
+          "summary": "No. Para Hyphae 3.0.0 no se puede citar G7 como certificación de latencia portable ni de hardware dedicado: esa formulación está clasificada como reivindicación prohibida. La evidencia G7 se limita a una máquina virtual DigitalOcean C-60 (cierre hyphaeAtlas.evidence.g7-c60) y no constituye una certificación de latencia; las expresiones portable latency, dedicated-hardware latency certified y bare-metal performance certified están vetadas incluso con cualificadores.",
+          "applicability": {
+            "version": "3.0.0",
+            "surface": "hyphaeAtlas.evidence.g7-c60",
+            "protocolMinor": null
+          },
+          "findings": [
+            {
+              "statement": "Citar G7 como certificación de latencia portable o de hardware dedicado está clasificado como reivindicación prohibida para Hyphae 3.0.0, incluso con cualificadores.",
+              "status": "rejected",
+              "qualifiers": [
+                "Alcance de versión: Hyphae 3.0.0 únicamente",
+                "Incluso una formulación cualificada constituye violación de certificación"
+              ],
+              "sourceUrls": [
+                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
+              ]
+            },
+            {
+              "statement": "La evidencia G7 está estrictamente limitada a una máquina virtual DigitalOcean C-60 bajo un cierre de escala operativa virtualizada (hyphaeAtlas.evidence.g7-c60); ninguna certificación de latencia se extiende más allá de ese entorno.",
+              "status": "confirmed",
+              "qualifiers": [
+                "Entorno: DigitalOcean C-60 virtualizada",
+                "Identificador de artefacto: hyphaeAtlas.evidence.g7-c60",
+                "Clase de evidencia: virtualized operational scale"
+              ],
+              "sourceUrls": [
+                "hyphaeAtlas.claim.g7-portable-latency — Dataset",
+                "G7 virtualized operational-scale closure — Dataset"
+              ]
+            },
+            {
+              "statement": "En cualquier referencia conforme a la evidencia G7 están explícitamente prohibidas las formulaciones portable latency, dedicated-hardware latency certified y bare-metal performance certified.",
+              "status": "confirmed",
+              "qualifiers": [
+                "Prohibición absoluta de esas formas de wording en Hyphae 3.0.0"
+              ],
+              "sourceUrls": [
+                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
+              ]
+            },
+            {
+              "statement": "Cualquier referencia conforme a la evidencia de latencia G7 debe incluir los tres cualificadores obligatorios: evidencia de escala operativa virtualizada (solo el contexto VM DigitalOcean C-60); declaración explícita de que G7 no constituye una certificación de latencia; y aviso de que el perfil G7 es anterior al trabajo posterior de control de acceso.",
+              "status": "confirmed",
+              "qualifiers": [
+                "Virtualized operational-scale evidence",
+                "No latency certification",
+                "Access-control caveat"
+              ],
+              "sourceUrls": [
+                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
+              ]
+            },
+            {
+              "statement": "La clase Virtualized operational scale (autoridad G7 C-60 cerrada) solo es citable con el cualificador explícito virtualized, no latency certification; únicamente la clase Dedicated hardware (recibos bare-metal) admite declaraciones comparativas.",
+              "status": "confirmed",
+              "qualifiers": [
+                "G7 C-60 es autoridad cerrada de escala operativa virtualizada, no de hardware dedicado",
+                "Toda cifra de latencia exige clase de entorno y recibo"
+              ],
+              "sourceUrls": [
+                "Canonical claims and non-claims — Dataset"
+              ]
+            },
+            {
+              "statement": "El cierre G7 se ejecutó en el commit ff188af en una máquina virtual DigitalOcean C-60; completó 11 superficies y 33 celdas de concurrencia, con concurrencia funcional, contabilidad, corrección, recall ANN y recuperación durable observadas. Limitaciones documentadas: sin certificación de latencia en hardware dedicado; sin certificación de interferencia de fondo; anterior al trabajo de control de acceso en rutas de publicación posteriores.",
+              "status": "confirmed",
+              "qualifiers": [
+                "commit ff188af",
+                "DigitalOcean C-60",
+                "No dedicated-hardware latency certification",
+                "No background-interference certification",
+                "Predates access-control work"
+              ],
+              "sourceUrls": [
+                "G7 virtualized operational-scale closure — Dataset"
+              ]
+            }
+          ],
+          "conflicts": [
+            {
+              "description": "El cierre G7 se documenta en el commit ff188af, mientras que el commit canónico de código fuente de Hyphae 3.0.0 es 24bce1accdff8d14127797afe6f237a57c1cd4f3.",
+              "resolution": "La clasificación de reivindicación y las limitaciones de G7 se aplican al alcance 3.0.0; el desajuste de commit no autoriza citar G7 como latencia portable o de hardware dedicado. Se conserva como conflicto de aplicabilidad de evidencia. El documento de verificación de 3.0.0 ya declara que G7 no certifica latencia en hardware dedicado.",
+              "sourceUrls": [
+                "G7 virtualized operational-scale closure — Dataset",
+                "Hyphae 3.0.0 exact-SHA G8 release closure — Dataset"
+              ]
+            }
+          ],
+          "recommendedActions": [
+            "No citar G7 como certificación de latencia portable, de hardware dedicado o bare-metal para Hyphae 3.0.0.",
+            "Si se menciona G7, incluir los tres cualificadores obligatorios y retener el entorno DigitalOcean C-60, el commit ff188af, el alcance 3.0.0 y los no-reclamos explícitos.",
+            "No tratar G7 como sustituto de la clase Dedicated hardware; las declaraciones comparativas exigen recibos bare-metal con baselines fijados.",
+            "No citar ningún número de latencia sin su clase de entorno y recibo."
+          ],
+          "limitations": [
+            "Esta clasificación de reivindicación aplica solo a Hyphae 3.0.0.",
+            "La evidencia G7 no cubre hardware dedicado, interferencia de fondo ni el trabajo posterior de control de acceso.",
+            "El commit de ejecución G7 (ff188af) no coincide con el commit de publicación 3.0.0 (24bce1accdff8d14127797afe6f237a57c1cd4f3).",
+            "El contenido recuperado no aporta recibos de hardware dedicado que sustituyan a G7."
+          ],
+          "sources": [
+            {
+              "title": "hyphaeAtlas.claim.g7-portable-latency — Dataset",
+              "url": "hyphaeAtlas.claim.g7-portable-latency — Dataset",
+              "path": "performance/g7_certification",
+              "commit": null
+            },
+            {
+              "title": "Canonical claims and non-claims — Dataset",
+              "url": "Canonical claims and non-claims — Dataset",
+              "path": "capabilities/claim_records",
+              "commit": null
+            },
+            {
+              "title": "G7 virtualized operational-scale closure — Dataset",
+              "url": "G7 virtualized operational-scale closure — Dataset",
+              "path": "releases/verification",
+              "commit": "ff188af"
+            },
+            {
+              "title": "Hyphae 3.0.0 exact-SHA G8 release closure — Dataset",
+              "url": "Hyphae 3.0.0 exact-SHA G8 release closure — Dataset",
+              "path": "releases/verification",
+              "commit": "24bce1accdff8d14127797afe6f237a57c1cd4f3"
+            }
+          ]
+        },
+        "retrieval": {
+          "mode": "sanity-context-mcp",
+          "toolsUsed": [
+            "initial_context",
+            "knowledge_base_read"
+          ],
+          "model": "xai/grok-4.6",
+          "durationMs": 109240
+        },
+        "evidence": {
+          "sources": [
+            {
+              "id": "hyphaeAtlas.source.56faf2da914ba1aae0055935",
+              "title": "Canonical claims and non-claims",
+              "path": "docs/product/claims.md",
+              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/docs/product/claims.md",
+              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
+              "digest": "69946a37a90598a09017c1d218bd9622721f5bb05e48c7706a755d1dd5a6ac83",
+              "license": "CC-BY-SA-4.0",
+              "lifecycleStatus": "published",
+              "authorityRank": 100,
+              "matchedBy": [
+                "canonical-citation",
                 "knowledge-base-entry",
                 "structured-reference"
               ],
@@ -2086,7 +1766,66 @@
                 0,
                 1,
                 2,
+                3,
                 4
+              ]
+            },
+            {
+              "id": "hyphaeAtlas.source.d97e76f790cb66a316b3461a",
+              "title": "Hyphae 3.0.0 publication receipt",
+              "path": "docs/release/receipts/3.0.0.md",
+              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/docs/release/receipts/3.0.0.md",
+              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
+              "digest": "c7cddd6bde6332faba92ee0a6388172a0d1d19afe0a94db94564a698cf1251a2",
+              "license": "CC-BY-SA-4.0",
+              "lifecycleStatus": "published",
+              "authorityRank": 100,
+              "matchedBy": [
+                "knowledge-base-entry",
+                "structured-reference"
+              ],
+              "supportsFindings": []
+            },
+            {
+              "id": "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
+              "title": "Native gate status",
+              "path": "docs/gates/native-gate-status.md",
+              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/docs/gates/native-gate-status.md",
+              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
+              "digest": "c51fbbfedaea0dc6692b88ed41e84fc7d5439125c822a778844d70948d945d0f",
+              "license": "CC-BY-SA-4.0",
+              "lifecycleStatus": "published",
+              "authorityRank": 95,
+              "matchedBy": [
+                "knowledge-base-entry",
+                "structured-reference"
+              ],
+              "supportsFindings": [
+                0,
+                1,
+                2,
+                3,
+                5
+              ]
+            },
+            {
+              "id": "hyphaeAtlas.source.74ac9aaac7b567b361c5a934",
+              "title": "Native capabilities and limits",
+              "path": "docs/product/native-capabilities.md",
+              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/docs/product/native-capabilities.md",
+              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
+              "digest": "43c2f7945727a086b51d10b997fdd25c2505f950b087d3e69596cf78e9957818",
+              "license": "CC-BY-SA-4.0",
+              "lifecycleStatus": "published",
+              "authorityRank": 95,
+              "matchedBy": [
+                "structured-reference"
+              ],
+              "supportsFindings": [
+                0,
+                1,
+                2,
+                3
               ]
             },
             {
@@ -2100,12 +1839,9 @@
               "lifecycleStatus": "published",
               "authorityRank": 70,
               "matchedBy": [
-                "canonical-citation",
                 "knowledge-base-entry"
               ],
-              "supportsFindings": [
-                6
-              ]
+              "supportsFindings": []
             },
             {
               "id": "hyphaeAtlas.source.0bd23f152cf90d142716d8c3",
@@ -2118,7 +1854,6 @@
               "lifecycleStatus": "historical",
               "authorityRank": 55,
               "matchedBy": [
-                "canonical-citation",
                 "knowledge-base-entry"
               ],
               "supportsFindings": []
@@ -2139,7 +1874,7 @@
               "supportsFindings": []
             }
           ],
-          "coverage": 0.875,
+          "coverage": 1,
           "findingSourceIds": [
             [
               "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
@@ -2158,32 +1893,21 @@
             ],
             [
               "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
-              "hyphaeAtlas.source.33bd399fa01dfd572d96c4b7"
-            ],
-            [
-              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
               "hyphaeAtlas.source.56faf2da914ba1aae0055935",
               "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
             ],
             [
-              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a"
+              "hyphaeAtlas.source.56faf2da914ba1aae0055935"
             ],
             [
-              "hyphaeAtlas.source.06572a96a58dc510037d5efa",
-              "hyphaeAtlas.source.56faf2da914ba1aae0055935"
+              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a"
             ]
           ],
           "findingCoverage": 1,
           "conflictSourceIds": [
             [
-              "hyphaeAtlas.source.0bd23f152cf90d142716d8c3",
-              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a"
-            ],
-            [
-              "hyphaeAtlas.source.06572a96a58dc510037d5efa",
               "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
-              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
-              "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
+              "hyphaeAtlas.source.d97e76f790cb66a316b3461a"
             ]
           ]
         },
@@ -2193,22 +1917,18 @@
             "kind": "tool",
             "name": "initial_context",
             "status": "complete",
-            "detail": "Observed Context tool call before the final response."
+            "detail": "Backend-owned MCP call completed before model synthesis."
           },
           {
             "id": "read",
             "kind": "tool",
             "name": "knowledge_base_read",
             "status": "complete",
-            "detail": "Observed retrieval of 7 Knowledge Base entries.",
+            "detail": "Backend retrieved 3 validated Knowledge Base entries.",
             "entries": [
               "performance/g7_certification",
-              "releases/gate_status",
               "capabilities/claim_records",
-              "releases/verification",
-              "releases/changelogs",
-              "performance/baselines",
-              "capabilities/product_specification"
+              "releases/verification"
             ]
           },
           {
@@ -2216,7 +1936,7 @@
             "kind": "resolver",
             "name": "evidence_resolver",
             "status": "complete",
-            "detail": "Resolved upstream evidence for 7/7 findings across 9 source documents."
+            "detail": "Resolved upstream evidence for 6/6 findings across 7 source documents."
           },
           {
             "id": "validate",
@@ -2226,7 +1946,7 @@
             "detail": "Validated the JSON report schema and per-finding source resolution. This is not independent factual validation of the verdict."
           }
         ],
-        "capturedAt": "2026-09-19T18:09:50.393Z"
+        "capturedAt": "2026-09-19T21:42:54.958Z"
       }
     }
   }

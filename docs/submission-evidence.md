@@ -13,13 +13,12 @@ Updated: 2026-09-18
 - Corpus import: completed twice with stable IDs and totals.
 - Remote corpus verification: 33 Atlas documents, all expected types present, no missing or invalid sources, no smoke records.
 - Existing content preservation: non-Atlas count stable during imports.
-- xAI authentication and model access: HTTP 200.
-- Grok inference: successful.
-- Agent preview query: successful structured report with findings and sources.
-- Preview evaluation smoke: all three representative semantics passed after one timeout-bound adjustment.
+- Configured xAI demo provider: authentication, model access, and synthesis verified.
+- Provider adapters: mocked transport/auth smoke passes for xAI, OpenAI, Anthropic, and OpenAI-compatible APIs.
+- Backend-owned MCP loop: live smoke passes with validated outline selection, direct `initial_context`/`knowledge_base_read`, synthesis, and grounding.
 - TypeScript and ESLint: passing at the latest implementation checkpoint.
 - Next.js production build: passing; static home page and dynamic `/api/agent` route generated.
-- API health handler: HTTP 200 with xAI, Sanity dataset, and Context configuration detected.
+- API health handler: HTTP 200 with selected provider, Sanity dataset, and Context configuration detected.
 - Sanity Studio deployment: https://hyphae-atlas-v2ulbd4b.sanity.studio/.
 - Knowledge Base: `kbIPW9hgRO17`, dataset import complete and build succeeded.
 - Live Context smoke: 21 entries, `initial_context` and `knowledge_base_read`, cited upstream evidence, expected unsupported verdict.
@@ -35,8 +34,8 @@ Sanity Studio/CLI is isolated in `devDependencies`. Its transitive development g
 
 ## Live Context implementation
 
-- xAI Responses remote MCP integration is active.
-- The allowlist contains `initial_context` and `knowledge_base_read` only.
+- Atlas owns the MCP loop and exposes `initial_context` and `knowledge_base_read` in its operational trace.
+- The selected model provider receives only validated outline paths and retrieved text; it never receives the Context token.
 - The Knowledge Base contains 21 generated entries from 33 Atlas dataset documents.
 - Context smoke passes and observes both required tools.
 - The final strict 12-case corpus passed in one uninterrupted run with zero failures.
@@ -63,7 +62,7 @@ Sanity Studio/CLI is isolated in `devDependencies`. Its transitive development g
 ## Competitive UX and proof layer
 
 - Six live Context MCP replays captured: migration/capability/claim in EN and ES.
-- Every replay contains both required Context tools, four trace stages, and 5–9 resolved upstream sources.
+- Every replay contains both required Context tools, four trace stages, and 3–7 resolved upstream sources.
 - Evidence Resolver tested on the G7 claim: six upstream sources resolved with commit, digest, license, lifecycle, and authority.
 - Live SHA-256 verification tested against `docs/gates/native-gate-status.md`: expected and downloaded digests matched.
 - Interactive G7 conflict timeline distinguishes historical target, current closure authority, and scoped 3.0.0 receipt.

@@ -14,7 +14,7 @@ The three workflows are:
 - **Capability Inspector** — verifies support, bounds, protocol surfaces, and required authority.
 - **Claim Auditor** — decides whether product wording is supported, conditional, prohibited, or unproven.
 
-The interface is available in English and Spanish, including the model-generated report. A guided example gallery explains the decision each mode resolves, contextual tooltips define MCP, Knowledge Bases, verdicts, qualifiers, and source ledgers, and a Three.js/GSAP evidence graph visualizes the actual Sources → Knowledge Base → Context MCP → Grok → Verdict flow. During long calls, the UI narrates the agent stages instead of showing an unexplained spinner.
+The interface is available in English and Spanish, including the model-generated report. A guided example gallery explains the decision each mode resolves, contextual tooltips define MCP, Knowledge Bases, verdicts, qualifiers, and source ledgers, and a Three.js/GSAP evidence graph visualizes the actual Sources → Knowledge Base → Context MCP → Model → Verdict flow. During long calls, the UI narrates the agent stages instead of showing an unexplained spinner.
 
 To make the demo usable without waiting for a model call, I captured six unedited live Context runs: three modes in English and Spanish. Users can open an instant replay or switch to a fresh live run. Every replay retains its capture time, tool trace, Knowledge Base entry paths, verdict, and resolved evidence.
 
@@ -35,7 +35,7 @@ The walkthrough demonstrates a Native 2.x → 3.0 migration question, rejects a 
 
 Repository: https://github.com/terrizoaguimor/hyphae-atlas
 
-The repository includes the Sanity schemas, a closed-world corpus manifest, an idempotent importer, Grok/Context integration, strict output validation, the web interface, 12 gold evaluation cases, and reproducible setup documentation.
+The repository includes the Sanity schemas, a closed-world corpus manifest, an idempotent importer, provider-agnostic Context integration, strict output validation, the web interface, 12 gold evaluation cases, and reproducible setup documentation.
 
 ## How I Used Sanity
 
@@ -64,9 +64,13 @@ Atlas uses the Knowledge Base-mode tools:
 
 The agent treats retrieved content as data rather than instructions. Its authority rules distinguish published, historical, and unreleased material; use canonical claims for public wording; use machine contracts for API behavior; preserve benchmark environment and commit qualifiers; and return `unknown` or `unproven` when the sources cannot support a safe answer.
 
+### Provider-agnostic agent loop
+
+Atlas owns the MCP workflow instead of delegating it to a provider-specific connector. It calls `initial_context`, asks the configured model to select 1–8 paths, validates every path against the live outline, calls `knowledge_base_read` itself, and then asks the model to synthesize the structured report. The same interface supports xAI, OpenAI, Anthropic, and HTTPS OpenAI-compatible APIs. The hosted demo uses xAI, but the Sanity flow, trace, grounding, and evaluation do not depend on xAI.
+
 ### Proof Path: from citation to immutable source
 
-Knowledge Base citations are intentionally source-aware but may arrive as internal labels such as `Native gate status — Dataset`. After Grok returns a validated report, a deterministic resolver follows the Sanity document relationships and Knowledge Base entry paths to the original `sourceDocument` records. The final UI shows the public GitHub URL, exact commit, SHA-256 digest, license, lifecycle state, and authority rank.
+Knowledge Base citations are intentionally source-aware but may arrive as internal labels such as `Native gate status — Dataset`. After the configured model returns a schema-valid report, a deterministic resolver follows the Sanity document relationships and Knowledge Base entry paths to the original `sourceDocument` records. The final UI shows the public GitHub URL, exact commit, SHA-256 digest, license, lifecycle state, and authority rank.
 
 The **Verify SHA-256** action accepts only a namespaced Sanity source ID. The server reloads trusted provenance from Sanity, constructs an allowlisted `raw.githubusercontent.com/Hyphae-Research-Foundation/hyphae` URL, downloads bounded bytes, and compares the actual digest with the imported digest. A live verification of `docs/gates/native-gate-status.md` passed byte for byte.
 
@@ -102,7 +106,7 @@ The project contains seven Atlas schema types and 33 namespaced documents in the
 
 Agent session: `<PUBLIC_AGENT_SESSION_URL>`
 
-The curated session will show schema construction, safe import, the first Grok report, evaluation of a failed timeout boundary, and the correction without including API keys or environment values.
+The curated session will show schema construction, safe import, the first provider-backed report, the move to a backend-owned MCP loop, and grounding/evaluation corrections without including API keys or environment values.
 
 ## What I learned
 
@@ -113,6 +117,6 @@ The hard part was not retrieval volume. It was preserving applicability. A perfo
 
 ## Reliability and security details
 
-Atlas does not trust a citation merely because it resembles a real filename. After the model calls `knowledge_base_read`, the server repeats the observed read arguments directly against Context and checks each finding citation against the text actually returned. Only then does the resolver follow canonical Sanity relationships to an upstream file. A forged `example.invalid/README.md` citation is covered by a regression check and resolves to nothing.
+Atlas does not trust a citation merely because it resembles a real filename. Atlas itself calls `initial_context`, validates the model-selected paths, and calls `knowledge_base_read`. Each finding citation must appear in the exact text returned by that backend-owned read before the resolver follows canonical Sanity relationships to an upstream file. A forged `example.invalid/README.md` citation is covered by a regression check and resolves to nothing.
 
-The final audited evaluation passed 12/12 cases in one run with 12 attempts and zero retries: 100% verdict accuracy, required upstream source coverage, semantic term coverage, per-finding grounding, and Context tool compliance; no affirmative prohibited assertion passed. Browser cancellation propagates to xAI and Sanity, request bodies are bounded while streaming, and production uses separate Context Viewer and project Viewer tokens. Editor and Deploy Studio tokens never belong in the web runtime.
+The final audited provider-agnostic evaluation passed 12/12 cases in one run with 12 attempts and zero retries: 100% verdict accuracy, required upstream source coverage, semantic term coverage, per-finding grounding, and Context tool compliance; no affirmative prohibited assertion passed. Browser cancellation propagates to the selected provider and Sanity, request bodies are bounded while streaming, and production uses separate Context Viewer and project Viewer tokens. Editor and Deploy Studio tokens never belong in the web runtime.

@@ -1,8 +1,8 @@
 # Hyphae Atlas
 
-A version-aware migration, capability, and product-claim agent powered by structured Hyphae content, Sanity Context, and Grok.
+A version-aware migration, capability, and product-claim agent powered by structured Hyphae content, Sanity Context, and a pluggable model provider.
 
-> **Current status:** the application, Sanity schema, corpus importer, structured dataset, Grok runtime, UI, Knowledge Base, Context MCP, and evaluation harness are implemented. The live agent uses Sanity Context Knowledge Base mode and the final strict baseline passed all 12 cases in one uninterrupted run.
+> **Current status:** the application, Sanity schema, corpus importer, structured dataset, provider-agnostic runtime, UI, Knowledge Base, Context MCP, and evaluation harness are implemented. The hosted demo uses xAI, while self-hosters may select OpenAI, Anthropic, or any HTTPS OpenAI-compatible endpoint. The final strict baseline passed all 12 cases in one uninterrupted run.
 
 ## What Atlas does
 
@@ -10,13 +10,13 @@ A version-aware migration, capability, and product-claim agent powered by struct
 - **Capability Inspector** verifies support, surfaces, bounds, protocol minors, and authority.
 - **Claim Auditor** tests product language against releases, commits, gates, environments, and non-claims.
 - **Guided EN/ES experience** explains each decision type, localizes the report, and narrates the evidence path while the agent works.
-- **Interactive evidence graph** uses Three.js and GSAP to visualize Sources → Knowledge Base → Context MCP → Grok → Verdict, with reduced-motion support.
+- **Interactive evidence graph** uses Three.js and GSAP to visualize Sources → Knowledge Base → Context MCP → Model → Verdict, with reduced-motion support.
 
 Every report contains a verdict, applicability, findings, required qualifiers, conflicts, limitations, recommended actions, and a source ledger.
 
 Atlas then runs a deterministic **Proof Path**: internal Knowledge Base citations are resolved through the structured Sanity relationships to public upstream files. Each resolved source carries its exact commit, SHA-256 digest, license, lifecycle state, and authority rank. The UI can fetch the immutable raw file and verify its digest without trusting the model.
 
-Six real Context MCP runs (three modes × English/Spanish) are stored as instant, unedited replays. Users can understand the complete result immediately or switch to a live Grok + Context run.
+Six real Context MCP runs (three modes × English/Spanish) are stored as instant, unedited replays. Users can understand the complete result immediately or switch to a live run with the configured provider.
 
 ## Why structured content matters
 
@@ -27,11 +27,11 @@ Hyphae documentation spans normative specifications, public contracts, release r
 ```text
 Browser
   -> Next.js server route
-  -> Grok/xAI
-  -> Sanity Context MCP (Knowledge Base mode)
+  -> Atlas-owned MCP loop
        -> initial_context
+       -> configured model selects validated paths
        -> knowledge_base_read
-  -> Hyphae Atlas Knowledge Base
+       -> configured model synthesizes JSON
   -> deterministic Evidence Resolver
        -> Sanity source relationships
        -> upstream Git commit + SHA-256
@@ -47,7 +47,7 @@ Context MCP is configured and live. If the two Context variables are deliberatel
 - A Sanity project and project write token
 - Sanity Context/Knowledge Bases enabled for the organization
 - An organization token with `Context Viewer`
-- An xAI API key with access to the configured Grok model
+- A server-side key for one supported provider: xAI, OpenAI, Anthropic, or an HTTPS OpenAI-compatible endpoint
 - A local checkout of the public Hyphae repository for corpus import
 
 ## Setup
@@ -60,8 +60,19 @@ cp .env.example .env
 Fill `.env` locally. Never commit it.
 
 ```env
+MODEL_PROVIDER=xai
+
+# Configure only the selected provider
 XAI_API_KEY=
 XAI_MODEL=grok-4.6
+OPENAI_API_KEY=
+OPENAI_MODEL=
+ANTHROPIC_API_KEY=
+ANTHROPIC_MODEL=
+MODEL_API_KEY=
+MODEL_NAME=
+MODEL_BASE_URL=
+
 SANITY_PROJECT_ID=
 SANITY_DATASET=production
 SANITY_API_VERSION=2026-09-18
@@ -74,6 +85,31 @@ HYPHAE_SOURCE_PATH=../hyphae
 APP_URL=http://localhost:3000
 PORT=3000
 ```
+
+### Choose a model provider
+
+The hosted demo uses `MODEL_PROVIDER=xai`. Self-hosters can switch without changing the agent loop:
+
+```env
+MODEL_PROVIDER=openai
+OPENAI_API_KEY=
+OPENAI_MODEL=
+```
+
+```env
+MODEL_PROVIDER=anthropic
+ANTHROPIC_API_KEY=
+ANTHROPIC_MODEL=
+```
+
+```env
+MODEL_PROVIDER=openai-compatible
+MODEL_API_KEY=
+MODEL_NAME=
+MODEL_BASE_URL=https://your-provider.example/v1
+```
+
+Provider keys remain server-side. Visitors to the hosted demo do not need a key, and the project does not accept browser-submitted BYOK credentials.
 
 ### Validate and deploy the schema
 
@@ -145,6 +181,9 @@ Run the full evaluation only after Context MCP is configured so the final result
 | `npm run corpus:import` | Idempotently import Atlas documents |
 | `npm run corpus:verify` | Verify remote dataset invariants |
 | `npm run context:smoke` | Verify live Context MCP and required tools |
+| `npm run providers:smoke` | Validate xAI/OpenAI/Anthropic/OpenAI-compatible adapters without external calls |
+| `npm run security:smoke` | Run body, rate, grounding, polarity, replay, and secret-template regressions |
+| `npm run cancellation:smoke` | Verify abort propagation and concurrency-slot release |
 | `npm run replays:capture` | Capture six real EN/ES Context runs for instant replay |
 | `npm run evaluate` | Run the gold evaluation corpus |
 
@@ -152,7 +191,7 @@ Run the full evaluation only after Context MCP is configured so the final result
 
 - Secrets are server-only and `.env` is ignored.
 - Context is read-only and uses an organization token with the minimum `Context Viewer` permission.
-- The xAI MCP tool allowlist contains only `initial_context` and `knowledge_base_read`.
+- Atlas owns the two MCP calls (`initial_context`, `knowledge_base_read`) and validates selected outline paths before retrieval.
 - Inputs, outputs, tool rounds, request time, and request frequency are bounded.
 - Errors are redacted before reaching clients.
 - Retrieved content is treated as untrusted data, not system instructions.
@@ -179,4 +218,4 @@ See [`ATTRIBUTION.md`](ATTRIBUTION.md) for source and license handling.
 
 ## Deployment credential matrix
 
-The web runtime receives only `XAI_API_KEY`, `SANITY_CONTEXT_TOKEN`, and `SANITY_READ_TOKEN`. `SANITY_WRITE_TOKEN` belongs only to `corpus:import`; `SANITY_DEPLOY_TOKEN` belongs only to schema/Studio deployment. See [`SECURITY.md`](SECURITY.md) for API bounds, cancellation, audited grounding, edge rate limiting, and the pre-publication checklist.
+The web runtime receives only the selected provider key, `SANITY_CONTEXT_TOKEN`, and `SANITY_READ_TOKEN`. `SANITY_WRITE_TOKEN` belongs only to `corpus:import`; `SANITY_DEPLOY_TOKEN` belongs only to schema/Studio deployment. See [`SECURITY.md`](SECURITY.md) for API bounds, cancellation, audited grounding, edge rate limiting, and the pre-publication checklist.

@@ -2,11 +2,11 @@
 
 ## Credential separation
 
-Hyphae Atlas uses five independent credentials:
+Hyphae Atlas uses one selected model-provider credential plus four separated Sanity credentials:
 
 | Variable | Minimum role | Where it may run |
 |---|---|---|
-| `XAI_API_KEY` | xAI model access | Web server only |
+| `XAI_API_KEY` **or** `OPENAI_API_KEY` **or** `ANTHROPIC_API_KEY` **or** `MODEL_API_KEY` | Selected model provider access | Web server only |
 | `SANITY_CONTEXT_TOKEN` | Organization Context Viewer | Web server only |
 | `SANITY_READ_TOKEN` | Project Viewer | Web server and read-only verification scripts |
 | `SANITY_WRITE_TOKEN` | Project Editor | Offline corpus importer only |
@@ -19,7 +19,7 @@ Never configure `SANITY_WRITE_TOKEN` or `SANITY_DEPLOY_TOKEN` in the deployed we
 - Request bodies are streamed with byte and completion deadlines.
 - Valid expensive requests enter per-client and global budgets only after schema validation.
 - At most two model requests run concurrently per process.
-- Browser cancellation propagates through the route, xAI, Context audit, and Sanity resolver.
+- Browser cancellation propagates through the route, selected model provider, Context calls, and Sanity resolver.
 - The public evidence endpoint accepts only namespaced source IDs and constructs a fixed-host GitHub URL from Sanity-owned provenance.
 - Upstream verification is streamed into SHA-256 with a 700 KB limit and no redirects.
 - Model-provided HTTP citations are never rendered as links; only resolver-owned upstream URLs are clickable.
@@ -28,7 +28,7 @@ Never configure `SANITY_WRITE_TOKEN` or `SANITY_DEPLOY_TOKEN` in the deployed we
 ## Deployment requirements
 
 - Add a durable provider/edge rate limit for `/api/agent`; the in-process limiter is defense in depth, not cross-instance authority.
-- Configure a function duration of at least 300 seconds.
+- Configure a function duration of at least 300 seconds; the app enforces a 285-second global deadline to preserve cleanup margin.
 - Set only the three web-server credentials listed above.
 - Rotate any credential that appeared in logs, screenshots, transcripts, or copied environment templates.
 - Run `npm run security:smoke`, `npm run cancellation:smoke`, `npm audit --omit=dev`, and a clean live query after deployment.

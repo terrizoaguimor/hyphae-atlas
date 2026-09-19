@@ -13,12 +13,12 @@ import {Tooltip} from "./Tooltip";
 import {ConflictTimeline} from "./ConflictTimeline";
 import {EvaluationLab} from "./EvaluationLab";
 
-type Configuration = {status: string; xaiConfigured: boolean; sanityDatasetConfigured: boolean; contextConfigured: boolean; retrievalMode: string};
+type Configuration = {status: string; modelConfigured: boolean; modelProvider: string; model: string | null; sanityDatasetConfigured: boolean; contextConfigured: boolean; retrievalMode: string};
 type ExecutionMode = "replay" | "live";
 const motionAllowed = () => typeof window !== "undefined" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const executionCopy = {
-  en: {replay: "Instant replay", replayBody: "Open a real, previously captured Context MCP run immediately. No model credits.", live: "Run live", liveBody: "Ask Grok to read the current Knowledge Base now. Usually 1–3 minutes.", open: "Open verified replay", banner: "Verified replay", bannerBody: "This is an unedited result captured from the live Sanity Context MCP flow."},
-  es: {replay: "Replay instantáneo", replayBody: "Abre inmediatamente una ejecución real capturada previamente con Context MCP. No consume créditos.", live: "Ejecutar en vivo", liveBody: "Pide a Grok que consulte ahora la Knowledge Base actual. Suele tardar 1–3 minutos.", open: "Abrir replay verificado", banner: "Replay verificado", bannerBody: "Este es un resultado sin editar capturado desde el flujo real de Sanity Context MCP."},
+  en: {replay: "Instant replay", replayBody: "Open a real, previously captured Context MCP run immediately. No model credits.", live: "Run live", liveBody: "Ask the configured model to read the current Knowledge Base now. Usually 1–5 minutes.", open: "Open verified replay", banner: "Verified replay", bannerBody: "This is an unedited result captured from the live Sanity Context MCP flow."},
+  es: {replay: "Replay instantáneo", replayBody: "Abre inmediatamente una ejecución real capturada previamente con Context MCP. No consume créditos.", live: "Ejecutar en vivo", liveBody: "Pide al modelo configurado que consulte ahora la Knowledge Base. Suele tardar 1–5 minutos.", open: "Abrir replay verificado", banner: "Replay verificado", bannerBody: "Este es un resultado sin editar capturado desde el flujo real de Sanity Context MCP."},
 } as const;
 
 export function AtlasWorkbench() {
@@ -169,7 +169,7 @@ export function AtlasWorkbench() {
                 <div className="panel-heading"><div><p className="eyebrow">{active.eyebrow}</p><h3>{active.label}</h3><p>{active.description}</p></div><button type="button" className="text-button" onClick={() => setQuestion(active.example)}>{copy.loadExample}</button></div>
                 <div className="execution-switch" role="group" aria-label={locale === "es" ? "Modo de ejecución" : "Execution mode"}>
                   <button type="button" aria-pressed={executionMode === "replay"} className={executionMode === "replay" ? "active" : ""} onClick={() => {cancelPendingRequest(); setExecutionMode("replay"); setQuestion(active.example); setResult(null);}}><span>↻</span><div><strong>{executionCopy[locale].replay}</strong><small>{executionCopy[locale].replayBody}</small></div></button>
-                  <button type="button" aria-pressed={executionMode === "live"} className={executionMode === "live" ? "active" : ""} disabled={configuration?.contextConfigured !== true} onClick={() => {cancelPendingRequest(); setExecutionMode("live"); setResult(null);}}><span>✦</span><div><strong>{executionCopy[locale].live}</strong><small>{executionCopy[locale].liveBody}</small></div></button>
+                  <button type="button" aria-pressed={executionMode === "live"} className={executionMode === "live" ? "active" : ""} disabled={configuration?.contextConfigured !== true || !configuration.modelConfigured} onClick={() => {cancelPendingRequest(); setExecutionMode("live"); setResult(null);}}><span>✦</span><div><strong>{executionCopy[locale].live}</strong><small>{executionCopy[locale].liveBody}</small></div></button>
                 </div>
                 <label className="question-field"><span className="label-line">{copy.question}<small>{copy.questionHelp}</small></span><textarea value={question} onChange={(event) => setQuestion(event.target.value)} minLength={10} maxLength={2000} rows={5} required disabled={loading} readOnly={executionMode === "replay"}/><span className="character-count">{question.length}/2000</span></label>
                 <div className="field-grid">
