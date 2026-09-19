@@ -33,7 +33,7 @@ The walkthrough demonstrates a Native 2.x → 3.0 migration question, rejects a 
 
 <!-- Replace before publishing -->
 
-Repository: `<REPOSITORY_URL>`
+Repository: https://github.com/terrizoaguimor/hyphae-atlas
 
 The repository includes the Sanity schemas, a closed-world corpus manifest, an idempotent importer, Grok/Context integration, strict output validation, the web interface, 12 gold evaluation cases, and reproducible setup documentation.
 
@@ -92,7 +92,7 @@ The build also surfaced a real temporal conflict: an older performance-target do
 - Sanity project ID: `v2ulbd4b`
 - Dataset: `production`
 - Knowledge Base: `Hyphae Atlas`
-- Public dataset URL: `<PUBLIC_DATASET_URL_OR_NA>`
+- Public dataset URL: `N/A — the required project ID is provided; Atlas path IDs are inspected through the project`
 
 The project contains seven Atlas schema types and 33 namespaced documents in the initial corpus build.
 

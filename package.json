@@ -4,6 +4,11 @@
   "private": true,
   "description": "A version-aware evidence agent for Hyphae, powered by Sanity Context and Grok.",
   "license": "Apache-2.0",
+  "author": "Mario Gutierrez",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/terrizoaguimor/hyphae-atlas.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "next dev",

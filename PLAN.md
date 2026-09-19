@@ -850,7 +850,7 @@ Este documento es la autoridad de alcance para el MVP. Cualquier funcionalidad n
 
 ### Pendiente por publicación externa
 
-- Crear commit/remote/push solamente con autorización explícita del usuario.
+- Repositorio público creado y `main` publicado en https://github.com/terrizoaguimor/hyphae-atlas.
 - Desplegar la aplicación con una cuenta/CLI de hosting autenticada.
 - Capturar screenshots del outline/conflicto.
 - Grabar video, publicar Agent Session y sustituir placeholders del submission.

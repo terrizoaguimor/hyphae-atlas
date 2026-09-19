@@ -44,7 +44,7 @@ Sanity Studio/CLI is isolated in `devDependencies`. Its transitive development g
 ## External actions still required
 
 1. Review and capture the Knowledge Base outline and resolved authority conflict for the article.
-2. Create a GitHub repository/remote and publish code; no commit or push was made automatically.
+2. Repository published at https://github.com/terrizoaguimor/hyphae-atlas.
 3. Deploy the web application and set server-side environment secrets.
 4. Record the final demo video.
 5. Curate and publish an Agent Session after secret review.
