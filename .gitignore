@@ -8,6 +8,12 @@ dist/
 # Sanity build output
 .sanity/
 
+# Cloudflare/OpenNext build output
+.open-next/
+.cloudflare-deploy/
+.wrangler/
+cloudflare-env.d.ts
+
 # Generated evaluation and local evidence output
 evaluation/results/
 artifacts-local/

@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "hyphae-atlas",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-09-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "routes": [
+    {
+      "pattern": "atlas.terrizoaguimor.dev",
+      "custom_domain": true
+    }
+  ],
+  "vars": {
+    "MODEL_PROVIDER": "xai",
+    "XAI_MODEL": "grok-4.6",
+    "SANITY_PROJECT_ID": "v2ulbd4b",
+    "SANITY_DATASET": "production",
+    "SANITY_API_VERSION": "2026-09-18",
+    "APP_URL": "https://atlas.terrizoaguimor.dev"
+  }
+}

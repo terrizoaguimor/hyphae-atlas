@@ -26,12 +26,18 @@
     "security:smoke": "tsx scripts/security-smoke.ts",
     "cancellation:smoke": "tsx scripts/cancellation-smoke.ts",
     "providers:smoke": "tsx scripts/provider-smoke.ts",
+    "opennext:build": "opennextjs-cloudflare build",
+    "build:cloudflare": "node scripts/cloudflare-safe-deploy.mjs",
+    "preview:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy:cloudflare": "node scripts/cloudflare-safe-deploy.mjs --deploy",
+    "cf:typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "evaluate": "tsx evaluation/run.ts"
   },
   "engines": {
     "node": ">=22.12"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "1.20.6",
     "@sanity/client": "8.6.2",
     "dotenv": "18.0.0",
     "gsap": "3.15.0",
@@ -51,6 +57,7 @@
     "sanity": "5.31.2",
     "styled-components": "6.5.3",
     "tsx": "4.23.13",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "wrangler": "4.135.0"
   }
 }
