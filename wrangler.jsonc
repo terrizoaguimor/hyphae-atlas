@@ -13,6 +13,11 @@
   },
   "ratelimits": [
     {
+      "name": "TURNSTILE_RATE_LIMITER",
+      "namespace_id": "1003",
+      "simple": {"limit": 30, "period": 60}
+    },
+    {
       "name": "AGENT_RATE_LIMITER",
       "namespace_id": "1001",
       "simple": {"limit": 6, "period": 60}
@@ -32,6 +37,8 @@
   "vars": {
     "MODEL_PROVIDER": "xai",
     "CLOUDFLARE_DEPLOYMENT": "true",
+    "NEXT_PUBLIC_TURNSTILE_ENABLED": "true",
+    "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAE9SaZu7Zihashsh",
     "XAI_MODEL": "grok-4.6",
     "SANITY_PROJECT_ID": "v2ulbd4b",
     "SANITY_DATASET": "production",

@@ -94,3 +94,10 @@ footer {width: min(88rem, calc(100% - 3rem)); margin: 0 auto; padding: 2rem 0; d
 
 
 .report-meta strong {overflow-wrap:anywhere}
+
+
+/* Cloudflare Turnstile */
+.turnstile-shell {margin-top:1rem;padding:1rem;display:grid;grid-template-columns:minmax(12rem,.8fr) minmax(18rem,1fr);gap:1rem;align-items:center;border:1px solid rgba(255,255,255,.14);border-radius:.75rem;background:rgba(255,255,255,.04)}.turnstile-shell .eyebrow {margin-bottom:.3rem;color:var(--mint)}.turnstile-shell > div:first-of-type > span {display:block;color:#91a69e;font-size:.68rem;line-height:1.45}.turnstile-widget {min-height:65px;display:flex;justify-content:flex-end}.turnstile-shell > p {grid-column:1/-1;margin:0;color:#9eb2aa;font-size:.66rem;text-align:right}.turnstile-ready {border-color:rgba(59,155,113,.55);background:rgba(59,155,113,.08)}.turnstile-ready > p {color:var(--mint)}.turnstile-error {border-color:rgba(240,154,127,.6)}.primary-button:disabled {opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}@media(max-width:700px){.turnstile-shell{grid-template-columns:1fr}.turnstile-widget{justify-content:flex-start}.turnstile-shell>p{text-align:left}}
+
+
+.turnstile-shell > p button {margin-left:.4rem;padding:0;border:0;border-bottom:1px solid currentColor;color:inherit;background:transparent;font:inherit;font-weight:800;cursor:pointer}

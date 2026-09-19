@@ -873,3 +873,14 @@ Implemented after reviewing current Path One submissions:
 - public 12-case Evaluation Lab with explicit timeout disclosure;
 - Three.js/GSAP explanatory motion with WebGL and reduced-motion fallbacks;
 - headless desktop/mobile visual review.
+
+
+## 28. Cloudflare production security
+
+- OpenNext clean-room deployment on `atlas.terrizoaguimor.dev`.
+- Secret scan before every deployment; `.env` never enters build context.
+- Managed Turnstile required for every live model query.
+- Exact hostname/action/age verification through Siteverify.
+- Cloudflare-native agent/evidence rate bindings plus in-process quotas.
+- Same-origin POST, CSP, HSTS, frame denial, no-sniff, restricted permissions, COOP/CORP.
+- Replays remain public without challenge because they consume no external model or mutable API.

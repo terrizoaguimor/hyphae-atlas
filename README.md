@@ -233,3 +233,10 @@ npm run deploy:cloudflare
 Both commands use `scripts/cloudflare-safe-deploy.mjs`, which requires a clean commit, clones it without `.env`, builds with public variables only, and scans 1,000+ generated files against every local secret value before deployment. `wrangler.jsonc` configures the custom domain and Cloudflare-native rate-limit bindings for live model calls and SHA verification.
 
 Runtime secrets must be added with `wrangler secret put`; never pass the offline Editor or Deploy Studio tokens to the Worker.
+
+
+### Turnstile and abuse controls
+
+Every fresh live model query on the Cloudflare deployment requires a single-use Turnstile token bound to action `atlas-query` and hostname `atlas.terrizoaguimor.dev`. Instant replays require no challenge and no model credits. Server validation checks success, action, hostname, age, and optional Cloudflare client IP before any model budget is consumed.
+
+Additional controls include strict same-origin POSTs, CSP/HSTS/security headers, Cloudflare native rate limits, in-process client/global quotas, two-request concurrency, streaming body limits, provider/Context/global deadlines, and fail-closed missing bindings or secrets.

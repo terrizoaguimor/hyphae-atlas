@@ -19,6 +19,7 @@ function parseSecrets() {
   return readFileSync(envPath, "utf8").split("\n").flatMap((line) => {
     const trimmed = line.trim(); if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) return [];
     const [key, ...rest] = trimmed.split("="); const value = rest.join("=").trim().replace(/^['"]|['"]$/g, "");
+    if (key.startsWith("NEXT_PUBLIC_")) return [];
     return /(KEY|TOKEN|SECRET)/.test(key) && value.length >= 12 ? [value] : [];
   });
 }
@@ -41,6 +42,8 @@ const buildEnv = {
   SANITY_DATASET: "production",
   SANITY_API_VERSION: "2026-09-18",
   APP_URL: "https://atlas.terrizoaguimor.dev",
+  NEXT_PUBLIC_TURNSTILE_ENABLED: "true",
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: "0x4AAAAAAE9SaZu7Zihashsh",
 };
 run("npm", ["ci"], {cwd: target, env: buildEnv});
 run("npm", ["run", "opennext:build"], {cwd: target, env: buildEnv});

@@ -44,3 +44,15 @@ Do not include live credentials in an issue. Describe the affected route and rep
 `wrangler.jsonc` declares provider-native rate-limit bindings: `AGENT_RATE_LIMITER` allows six live calls per 60 seconds per Cloudflare location, while `EVIDENCE_RATE_LIMITER` allows thirty integrity checks. Routes fail closed if `CLOUDFLARE_DEPLOYMENT=true` and a binding is missing. In-process hourly/client limits remain an additional layer.
 
 Cloudflare builds must use the clean-room deploy script. It clones the committed tree without `.env`, exposes only public build variables, and scans the generated OpenNext bundle for all local secret values before upload.
+
+
+## Turnstile and browser protocol
+
+Cloudflare live queries require a managed Turnstile widget restricted to `atlas.terrizoaguimor.dev`. Siteverify runs server-side and validates the single-use token, `atlas-query` action, exact hostname, challenge age, and Cloudflare client IP. The secret never enters client code; only the public site key is built into the frontend. Replay mode remains challenge-free because it performs no paid or mutable request.
+
+Both POST routes reject cross-origin requests in Cloudflare production. Global headers enforce HSTS, CSP limited to self plus Cloudflare Turnstile script/frame/connect origins, frame denial, MIME sniffing protection, no-referrer, restricted browser permissions, COOP, and same-origin resource policy.
+
+
+### CSP limitation
+
+Next.js static hydration currently requires inline framework scripts, so `script-src` retains `'unsafe-inline'`. `script-src-attr 'none'` still blocks inline event handlers, and the application has no user-controlled HTML rendering sink. This is a documented partial XSS defense, not a nonce-based strict CSP claim. A future dynamic nonce deployment can remove the exception after OpenNext compatibility is verified.

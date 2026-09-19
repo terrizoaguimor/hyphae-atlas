@@ -7,6 +7,7 @@ import {REQUEST_LIMITS} from "@/security/limits";
 import {clientIdentity, consumeRateLimit} from "@/security/rate-limit";
 import {publicError} from "@/security/redaction";
 import {consumeCloudflareLimit} from "@/security/cloudflare-rate-limit";
+import {hasAllowedOrigin} from "@/security/origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,6 +35,7 @@ async function hashBoundedResponse(response: Response, maxBytes: number): Promis
 }
 
 export async function POST(request: Request) {
+  if (!hasAllowedOrigin(request)) return NextResponse.json({error: "Cross-origin requests are not allowed"}, {status: 403});
   const identity = clientIdentity(request);
   const edgeRate = await consumeCloudflareLimit("EVIDENCE_RATE_LIMITER", identity);
   if (!edgeRate.allowed) return NextResponse.json({error: edgeRate.available ? "Cloudflare verification rate limit exceeded" : "Cloudflare rate-limit binding is unavailable"}, {status: edgeRate.available ? 429 : 503});

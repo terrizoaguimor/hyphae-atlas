@@ -10,13 +10,12 @@ let activeAgentRequests = 0;
 export function clientIdentity(request: Request): string {
   const headers = request.headers;
   let address = "";
-  if (process.env.VERCEL === "1") address = headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ?? "";
-  else if (process.env.CF_PAGES || process.env.CLOUDFLARE) address = headers.get("cf-connecting-ip")?.trim() ?? "";
+  if (process.env.CLOUDFLARE_DEPLOYMENT === "true" || process.env.CF_PAGES || process.env.CLOUDFLARE) address = headers.get("cf-connecting-ip")?.trim() ?? "";
+  else if (process.env.VERCEL === "1") address = headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ?? "";
   else if (process.env.NODE_ENV !== "production") address = headers.get("x-real-ip") ?? headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
   else address = "shared-production";
   const safeAddress = /^[a-fA-F0-9:.]{1,64}$/.test(address) ? address : "shared-production";
-  const userAgent = (headers.get("user-agent") ?? "unknown").slice(0, 160);
-  return createHash("sha256").update(`${safeAddress}\0${userAgent}`).digest("hex");
+  return createHash("sha256").update(safeAddress).digest("hex");
 }
 
 export function consumeRateLimit(scope: string, key: string, policy: RatePolicy, now = Date.now()) {

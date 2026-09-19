@@ -80,3 +80,13 @@ Sanity Studio/CLI is isolated in `devDependencies`. Its transitive development g
 - Body byte limit, five-second completion deadline, post-validation model budgets, two-slot concurrency, and streamed upstream hashing are active.
 - Cancellation smoke returns HTTP 499 in roughly 150 ms and confirms slot release.
 - Final audited baseline: 12/12 in one run, 12 attempts, zero retries, 100% verdict/source/term/finding/tool coverage, zero affirmative prohibited assertions.
+
+
+## Cloudflare production controls
+
+- Custom domain: https://atlas.terrizoaguimor.dev.
+- OpenNext clean-room build scans 1,221 generated files against local secret values before upload.
+- Managed Turnstile widget restricted to the exact Atlas hostname; server checks action, hostname, token age, and single-use Siteverify result.
+- Cloudflare bindings: six agent queries/minute and thirty evidence checks/minute per location.
+- Same-origin POST enforcement plus hardened compatibility CSP, HSTS, and browser security headers.
+- Public replays remain instant and free; only fresh live model queries require Turnstile.

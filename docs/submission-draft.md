@@ -120,3 +120,8 @@ The hard part was not retrieval volume. It was preserving applicability. A perfo
 Atlas does not trust a citation merely because it resembles a real filename. Atlas itself calls `initial_context`, validates the model-selected paths, and calls `knowledge_base_read`. Each finding citation must appear in the exact text returned by that backend-owned read before the resolver follows canonical Sanity relationships to an upstream file. A forged `example.invalid/README.md` citation is covered by a regression check and resolves to nothing.
 
 The final audited provider-agnostic evaluation passed 12/12 cases in one run with 12 attempts and zero retries: 100% verdict accuracy, required upstream source coverage, semantic term coverage, per-finding grounding, and Context tool compliance; no affirmative prohibited assertion passed. Browser cancellation propagates to the selected provider and Sanity, request bodies are bounded while streaming, and production uses separate Context Viewer and project Viewer tokens. Editor and Deploy Studio tokens never belong in the web runtime.
+
+
+### Public demo abuse controls
+
+The Cloudflare deployment makes all six verified replays immediately available without a key or challenge. A fresh live model query requires a managed Turnstile token restricted to the exact Atlas hostname and `atlas-query` action. The server validates the single-use token before consuming model budget. Cloudflare-native rate-limit bindings, same-origin enforcement, CSP/HSTS, streaming input bounds, global deadlines, concurrency slots, and per-process quotas provide additional layers.

@@ -102,3 +102,15 @@ Six real Context runs—three modes in English and Spanish—are captured as pub
 ## Cloudflare deployment
 
 OpenNext packages Next.js for Workers. The clean-room deploy script builds from a committed clone without `.env`, supplies only public metadata, and scans the complete `.open-next` output against local secret values before deployment. Cloudflare rate-limit bindings guard live agent and evidence-verification routes; the existing in-process quotas remain defense in depth.
+
+
+## Turnstile gate
+
+The frontend renders Turnstile only for live mode. Its token is single-use and reset after every attempt. `/api/agent` validates exact origin, Cloudflare rate binding, Siteverify success, action `atlas-query`, hostname `atlas.terrizoaguimor.dev`, timestamp, and then applies local/global quotas before acquiring a model slot. Replays never invoke this path. `/api/evidence/verify` uses same-origin plus its own Cloudflare and in-process quotas.
+
+## Response security policy
+
+Next.js emits CSP, HSTS, frame denial, no-sniff, no-referrer, Permissions Policy, COOP, and same-origin resource policy. CSP permits only same-origin resources plus Cloudflare's Turnstile script, frame, and connection endpoints.
+
+
+CSP currently permits inline framework scripts for Next.js static hydration but blocks inline script attributes and all object/frame ancestors. Atlas therefore describes it as a hardened compatibility CSP, not a nonce-based strict CSP.

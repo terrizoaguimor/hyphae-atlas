@@ -12,8 +12,9 @@ import {ReportView} from "./ReportView";
 import {Tooltip} from "./Tooltip";
 import {ConflictTimeline} from "./ConflictTimeline";
 import {EvaluationLab} from "./EvaluationLab";
+import {TurnstileChallenge} from "./TurnstileChallenge";
 
-type Configuration = {status: string; modelConfigured: boolean; modelProvider: string; model: string | null; sanityDatasetConfigured: boolean; contextConfigured: boolean; retrievalMode: string};
+type Configuration = {status: string; modelConfigured: boolean; modelProvider: string; model: string | null; sanityDatasetConfigured: boolean; contextConfigured: boolean; retrievalMode: string; turnstileRequired: boolean; turnstileConfigured: boolean};
 type ExecutionMode = "replay" | "live";
 const motionAllowed = () => typeof window !== "undefined" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const executionCopy = {
@@ -38,12 +39,16 @@ export function AtlasWorkbench() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [executionMode, setExecutionMode] = useState<ExecutionMode>("replay");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileReset, setTurnstileReset] = useState(0);
   const [resultOrigin, setResultOrigin] = useState<ExecutionMode>("replay");
   const [configuration, setConfiguration] = useState<Configuration | null>(null);
 
   const copy = uiCopy[locale];
   const modes = modeCopy[locale];
   const active = modes[mode];
+  const turnstileEnabled = process.env.NEXT_PUBLIC_TURNSTILE_ENABLED === "true";
+  const liveAvailable = configuration?.contextConfigured === true && configuration.modelConfigured && (!configuration.turnstileRequired || configuration.turnstileConfigured);
   const contextLabel = useMemo(() => configuration?.contextConfigured ? copy.live : copy.preview, [configuration, copy.live, copy.preview]);
 
   useEffect(() => {
@@ -78,14 +83,16 @@ export function AtlasWorkbench() {
     setLoading(false);
   }
 
+  function resetTurnstile() {setTurnstileToken(""); setTurnstileReset((value) => value + 1);}
+
   function changeLocale(next: Locale) {
-    cancelPendingRequest();
+    cancelPendingRequest(); resetTurnstile();
     setLocale(next); window.localStorage.setItem("atlas-locale", next); document.documentElement.lang = next;
     setQuestion(modeCopy[next][mode].example); setExecutionMode("replay"); setResult(null); setError("");
   }
 
   function selectMode(nextMode: QueryMode, scroll = false) {
-    cancelPendingRequest();
+    cancelPendingRequest(); resetTurnstile();
     setMode(nextMode); setQuestion(modes[nextMode].example); setExecutionMode("replay"); setResult(null); setError("");
     if (nextMode === "migration") {setCurrentVersion("2.x Native"); setTargetVersion("3.0.0"); setSurface(""); setProtocolMinor("");}
     if (nextMode === "capability") {setCurrentVersion(""); setTargetVersion("3.0.0"); setSurface("Native MCP"); setProtocolMinor("2");}
@@ -99,6 +106,7 @@ export function AtlasWorkbench() {
       try {setResult(getReplay(locale, mode).result); setResultOrigin("replay");} catch (caught) {setError(caught instanceof Error ? caught.message : copy.errorUnexpected);}
       return;
     }
+    if (turnstileEnabled && !turnstileToken) {setError(locale === "es" ? "Completa la verificación humana antes de ejecutar una consulta live." : "Complete human verification before running a live query."); return;}
     const executionId = ++executionRef.current;
     const controller = new AbortController();
     requestRef.current = controller;
@@ -106,7 +114,7 @@ export function AtlasWorkbench() {
     try {
       const response = await fetch("/api/agent", {
         method: "POST", headers: {"Content-Type": "application/json"}, signal: controller.signal,
-        body: JSON.stringify({mode, locale, question, ...(currentVersion ? {currentVersion} : {}), ...(targetVersion ? {targetVersion} : {}), ...(surface ? {surface} : {}), ...(protocolMinor ? {protocolMinor: Number(protocolMinor)} : {})}),
+        body: JSON.stringify({mode, locale, question, ...(turnstileEnabled ? {turnstileToken} : {}), ...(currentVersion ? {currentVersion} : {}), ...(targetVersion ? {targetVersion} : {}), ...(surface ? {surface} : {}), ...(protocolMinor ? {protocolMinor: Number(protocolMinor)} : {})}),
       });
       const payload = await response.json();
       if (executionId !== executionRef.current) return;
@@ -115,7 +123,7 @@ export function AtlasWorkbench() {
     } catch (caught) {
       if (executionId === executionRef.current && !(caught instanceof DOMException && caught.name === "AbortError")) setError(caught instanceof Error ? caught.message : copy.errorUnexpected);
     } finally {
-      if (executionId === executionRef.current) {requestRef.current = null; setLoading(false);}
+      if (executionId === executionRef.current) {requestRef.current = null; setLoading(false); if (turnstileEnabled) resetTurnstile();}
     }
   }
 
@@ -168,16 +176,17 @@ export function AtlasWorkbench() {
               <form className="query-panel" onSubmit={submit}>
                 <div className="panel-heading"><div><p className="eyebrow">{active.eyebrow}</p><h3>{active.label}</h3><p>{active.description}</p></div><button type="button" className="text-button" onClick={() => setQuestion(active.example)}>{copy.loadExample}</button></div>
                 <div className="execution-switch" role="group" aria-label={locale === "es" ? "Modo de ejecución" : "Execution mode"}>
-                  <button type="button" aria-pressed={executionMode === "replay"} className={executionMode === "replay" ? "active" : ""} onClick={() => {cancelPendingRequest(); setExecutionMode("replay"); setQuestion(active.example); setResult(null);}}><span>↻</span><div><strong>{executionCopy[locale].replay}</strong><small>{executionCopy[locale].replayBody}</small></div></button>
-                  <button type="button" aria-pressed={executionMode === "live"} className={executionMode === "live" ? "active" : ""} disabled={configuration?.contextConfigured !== true || !configuration.modelConfigured} onClick={() => {cancelPendingRequest(); setExecutionMode("live"); setResult(null);}}><span>✦</span><div><strong>{executionCopy[locale].live}</strong><small>{executionCopy[locale].liveBody}</small></div></button>
+                  <button type="button" aria-pressed={executionMode === "replay"} className={executionMode === "replay" ? "active" : ""} onClick={() => {cancelPendingRequest(); resetTurnstile(); setExecutionMode("replay"); setQuestion(active.example); setResult(null);}}><span>↻</span><div><strong>{executionCopy[locale].replay}</strong><small>{executionCopy[locale].replayBody}</small></div></button>
+                  <button type="button" aria-pressed={executionMode === "live"} className={executionMode === "live" ? "active" : ""} disabled={!liveAvailable} onClick={() => {cancelPendingRequest(); resetTurnstile(); setExecutionMode("live"); setResult(null);}}><span>✦</span><div><strong>{executionCopy[locale].live}</strong><small>{executionCopy[locale].liveBody}</small></div></button>
                 </div>
+                {executionMode === "live" && turnstileEnabled ? <TurnstileChallenge key={turnstileReset} locale={locale} resetKey={turnstileReset} onToken={setTurnstileToken}/> : null}
                 <label className="question-field"><span className="label-line">{copy.question}<small>{copy.questionHelp}</small></span><textarea value={question} onChange={(event) => setQuestion(event.target.value)} minLength={10} maxLength={2000} rows={5} required disabled={loading} readOnly={executionMode === "replay"}/><span className="character-count">{question.length}/2000</span></label>
                 <div className="field-grid">
                   {mode === "migration" ? <><label>{copy.currentVersion}<input value={currentVersion} onChange={(event) => setCurrentVersion(event.target.value)} placeholder="2.x Native" disabled={loading} readOnly={executionMode === "replay"}/></label><label>{copy.targetVersion}<input value={targetVersion} onChange={(event) => setTargetVersion(event.target.value)} placeholder="3.0.0" disabled={loading} readOnly={executionMode === "replay"}/></label></> : null}
                   {mode === "capability" ? <><label>{copy.surface}<input value={surface} onChange={(event) => setSurface(event.target.value)} placeholder="Native MCP" disabled={loading} readOnly={executionMode === "replay"}/></label><label>{copy.protocolMinor}<input type="number" min="0" value={protocolMinor} onChange={(event) => setProtocolMinor(event.target.value)} placeholder="2" disabled={loading} readOnly={executionMode === "replay"}/></label></> : null}
                   {mode === "claim" ? <label>{copy.targetVersion}<input value={targetVersion} onChange={(event) => setTargetVersion(event.target.value)} placeholder="3.0.0" disabled={loading} readOnly={executionMode === "replay"}/></label> : null}
                 </div>
-                {loading ? <AgentProgress locale={locale}/> : <div className="form-footer"><p>{copy.unknownNote}</p><button className="primary-button" type="submit">{executionMode === "replay" ? executionCopy[locale].open : copy.generate}<span aria-hidden="true">→</span></button></div>}
+                {loading ? <AgentProgress locale={locale}/> : <div className="form-footer"><p>{copy.unknownNote}</p><button className="primary-button" type="submit" disabled={executionMode === "live" && turnstileEnabled && !turnstileToken}>{executionMode === "replay" ? executionCopy[locale].open : copy.generate}<span aria-hidden="true">→</span></button></div>}
                 {error ? <div className="error-message" role="alert">{error}</div> : null}
               </form>
             </div>

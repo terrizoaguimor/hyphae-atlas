@@ -1,6 +1,6 @@
 import {getCloudflareContext} from "@opennextjs/cloudflare";
 
-type BindingName = "AGENT_RATE_LIMITER" | "EVIDENCE_RATE_LIMITER";
+type BindingName = "TURNSTILE_RATE_LIMITER" | "AGENT_RATE_LIMITER" | "EVIDENCE_RATE_LIMITER";
 type RateLimitBinding = {limit(input: {key: string}): Promise<{success: boolean}>};
 type CloudflareBindings = Partial<Record<BindingName, RateLimitBinding>>;
 
