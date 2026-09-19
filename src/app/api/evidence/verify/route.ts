@@ -53,7 +53,8 @@ export async function POST(request: Request) {
     if (request.signal.aborted) abortFromRequest(); else request.signal.addEventListener("abort", abortFromRequest, {once: true});
     const timeout = setTimeout(() => controller.abort(new DOMException("Verification timed out", "TimeoutError")), 20_000);
     try {
-      const upstream = await fetch(rawUrl, {signal: controller.signal, redirect: "error", cache: "no-store", headers: {Accept: "text/plain, application/json, application/yaml"}});
+      const upstream = await fetch(rawUrl, {signal: controller.signal, redirect: "manual", cache: "no-store", headers: {Accept: "text/plain, application/json, application/yaml"}});
+      if (upstream.status >= 300 && upstream.status < 400) return NextResponse.json({error: "Upstream redirects are not allowed", verified: false}, {status: 502});
       if (!upstream.ok) return NextResponse.json({error: `Upstream source returned HTTP ${upstream.status}`, verified: false}, {status: 502});
       const declaredLength = Number(upstream.headers.get("content-length") ?? 0);
       if (declaredLength > MAX_UPSTREAM_BYTES) return NextResponse.json({error: "Upstream source exceeds verification limit"}, {status: 413});
