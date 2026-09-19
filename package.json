@@ -1,0 +1,50 @@
+{
+  "name": "hyphae-atlas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A version-aware evidence agent for Hyphae, powered by Sanity Context and Grok.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "studio": "sanity dev",
+    "schema:deploy": "sanity schema deploy",
+    "corpus:dry": "tsx scripts/import-hyphae.ts --dry-run",
+    "corpus:import": "tsx scripts/import-hyphae.ts",
+    "corpus:verify": "tsx scripts/verify-corpus.ts",
+    "context:smoke": "tsx scripts/context-smoke.ts",
+    "replays:capture": "tsx scripts/capture-replays.ts",
+    "security:smoke": "tsx scripts/security-smoke.ts",
+    "cancellation:smoke": "tsx scripts/cancellation-smoke.ts",
+    "evaluate": "tsx evaluation/run.ts"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "dependencies": {
+    "@sanity/client": "8.6.2",
+    "dotenv": "18.0.0",
+    "gsap": "3.15.0",
+    "next": "16.3.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "three": "0.186.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/three": "0.186.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.5",
+    "sanity": "5.31.2",
+    "styled-components": "6.5.3",
+    "tsx": "4.23.13",
+    "typescript": "6.0.3"
+  }
+}

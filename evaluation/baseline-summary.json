@@ -1,0 +1,39 @@
+{
+  "version": 3,
+  "generatedAt": "2026-09-19T17:58:11.776Z",
+  "retrievalMode": "sanity-context-mcp",
+  "knowledgeBase": {
+    "publicId": "kbIPW9hgRO17",
+    "entryCount": 21
+  },
+  "requiredTools": [
+    "initial_context",
+    "knowledge_base_read"
+  ],
+  "fullRun": {
+    "scope": "full",
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "attempts": 12,
+    "retries": 0,
+    "verdictAccuracy": 1,
+    "sourceCoverage": 1,
+    "termCoverage": 1,
+    "findingGrounding": 1,
+    "forbiddenAssertionCount": 0,
+    "contextToolCompliance": 1,
+    "averageDurationMs": 86579,
+    "singleUninterruptedRun": true
+  },
+  "criteria": [
+    "Accepted verdict",
+    "All required upstream source paths resolved",
+    "All required semantic term groups present",
+    "Every finding citation observed in the actual knowledge_base_read output",
+    "Every finding linked to at least one resolved upstream source",
+    "No affirmative prohibited-language assertion in visible report fields",
+    "Both required Context tools observed"
+  ],
+  "historyNote": "Earlier evaluator iterations exposed timeout, polarity, field-size, and grounding-validation defects. Those runs are retained locally with timestamps and are not presented as the final baseline. After citation auditing, canonical alias resolution, sentence-bounded polarity, and applicability coverage were added, the final full run passed all 12 cases on their first attempt."
+}

@@ -1,0 +1,132 @@
+[
+  {
+    "id": "migration-native-2x-to-3",
+    "mode": "migration",
+    "question": "Can a Hyphae 2.x Native directory be opened with 3.0, when does it change, and is downgrade safety established?",
+    "currentVersion": "2.x Native",
+    "targetVersion": "3.0.0",
+    "expectedVerdicts": ["conditional"],
+    "requiredSourcePaths": ["README.md", "CHANGELOG.md"],
+    "requiredTerms": ["first accepted mutation"],
+    "forbiddenTerms": ["safe downgrade", "downgrade is guaranteed"]
+  },
+  {
+    "id": "migration-format2-import",
+    "mode": "migration",
+    "question": "Can a legacy format-2 directory be converted in place to Native, and what is the safe migration boundary?",
+    "currentVersion": "format-2",
+    "targetVersion": "Native directory format 1",
+    "expectedVerdicts": ["conditional", "unsupported"],
+    "requiredSourcePaths": ["docs/native/directory-format-v1.md", "compatibility/README.md"],
+    "requiredTerms": ["pending", "promotion"],
+    "forbiddenTerms": ["converted in place", "source is rewritten"]
+  },
+  {
+    "id": "migration-native-downgrade",
+    "mode": "migration",
+    "question": "After Hyphae 3.0 accepts its first mutation on a former 2.x Native directory, can I safely reopen it with 2.x?",
+    "currentVersion": "3.0.0 after mutation",
+    "targetVersion": "2.x Native",
+    "expectedVerdicts": ["unsupported", "unknown"],
+    "requiredSourcePaths": ["README.md"],
+    "requiredTerms": ["not established"],
+    "forbiddenTerms": ["safe to reopen", "fully backward compatible"]
+  },
+  {
+    "id": "migration-direct-format2-open",
+    "mode": "migration",
+    "question": "Will the Native runtime directly open and rewrite a format-2 directory if I point it at that directory?",
+    "currentVersion": "format-2",
+    "targetVersion": "Native v1",
+    "expectedVerdicts": ["unsupported"],
+    "requiredSourcePaths": ["docs/native/directory-format-v1.md"],
+    "requiredTerms": ["separate", "import"],
+    "forbiddenTerms": ["opens directly", "rewrites in place"]
+  },
+  {
+    "id": "capability-mcp-default-write",
+    "mode": "capability",
+    "question": "Does the Hyphae Native MCP adapter allow mutation tools by default?",
+    "targetVersion": "3.0.0",
+    "surface": "Native MCP",
+    "protocolMinor": 2,
+    "expectedVerdicts": ["unsupported"],
+    "requiredSourcePaths": ["mcp/README.md", "contracts/native-mcp-v2.json"],
+    "requiredTerms": ["read-only", "explicit"],
+    "forbiddenTerms": ["writes by default", "prompt can enable"]
+  },
+  {
+    "id": "capability-snapshot-serializable",
+    "mode": "capability",
+    "question": "Does Hyphae Native provide serializable transactions across relational, structure, and search engines?",
+    "targetVersion": "3.0.0",
+    "surface": "Native",
+    "expectedVerdicts": ["unsupported"],
+    "requiredSourcePaths": ["docs/native/mvcc-commit-v1.md", "docs/product/claims.md"],
+    "requiredTerms": ["snapshot isolation", "first-committer-wins"],
+    "forbiddenTerms": ["is serializable", "serializable guarantees"]
+  },
+  {
+    "id": "capability-bounded-sql",
+    "mode": "capability",
+    "question": "Can Hyphae 3.0 be treated as a universally SQL-compatible PostgreSQL replacement?",
+    "targetVersion": "3.0.0",
+    "surface": "Native SQL",
+    "expectedVerdicts": ["unsupported"],
+    "requiredSourcePaths": ["docs/native/sql-semantics-v1.md", "docs/product/claims.md"],
+    "requiredTerms": ["bounded", "fail-closed"],
+    "forbiddenTerms": ["universal SQL compatibility", "drop-in replacement"]
+  },
+  {
+    "id": "capability-mcp-bounds",
+    "mode": "capability",
+    "question": "What request-size and concurrency boundaries apply to the published Native MCP adapter?",
+    "targetVersion": "3.0.0",
+    "surface": "Native MCP",
+    "protocolMinor": 2,
+    "expectedVerdicts": ["supported", "conditional"],
+    "requiredSourcePaths": ["mcp/README.md", "contracts/native-mcp-v2.json"],
+    "requiredTerms": ["4 MiB", "one active"],
+    "forbiddenTerms": ["unbounded", "unlimited concurrency"]
+  },
+  {
+    "id": "claim-g7-portable-latency",
+    "mode": "claim",
+    "question": "Can G7 be cited as dedicated-hardware or portable latency certification for Hyphae 3.0.0?",
+    "targetVersion": "3.0.0",
+    "expectedVerdicts": ["unsupported"],
+    "requiredSourcePaths": ["docs/gates/native-gate-status.md", "docs/product/claims.md"],
+    "requiredTerms": ["virtualized", "no latency certification"],
+    "forbiddenTerms": ["dedicated-hardware certified", "portable latency certified"]
+  },
+  {
+    "id": "claim-serializable-wording",
+    "mode": "claim",
+    "question": "May our release page state that Hyphae provides serializable execution?",
+    "targetVersion": "3.0.0",
+    "expectedVerdicts": ["unsupported"],
+    "requiredSourcePaths": ["docs/product/claims.md", "docs/native/mvcc-commit-v1.md"],
+    "requiredTerms": ["snapshot isolation", "write skew"],
+    "forbiddenTerms": ["may state serializable", "serializable execution is implemented"]
+  },
+  {
+    "id": "claim-universal-sql-wording",
+    "mode": "claim",
+    "question": "May we market Hyphae 3.0 as universal SQL or PostgreSQL compatible?",
+    "targetVersion": "3.0.0",
+    "expectedVerdicts": ["unsupported"],
+    "requiredSourcePaths": ["docs/product/claims.md", "docs/native/sql-semantics-v1.md"],
+    "requiredTerms": ["bounded", "prohibited|forbidden|must not|non-claim"],
+    "forbiddenTerms": ["may market", "PostgreSQL compatible"]
+  },
+  {
+    "id": "claim-unreleased-semantic-memory",
+    "mode": "claim",
+    "question": "Is the unreleased Omarchy semantic Agent Memory integration proven to be included in the published Hyphae 3.0.0 binaries?",
+    "targetVersion": "3.0.0",
+    "expectedVerdicts": ["unsupported", "unproven"],
+    "requiredSourcePaths": ["docs/product/agent-memory.md"],
+    "requiredTerms": ["unreleased"],
+    "forbiddenTerms": ["included in 3.0.0", "published feature"]
+  }
+]

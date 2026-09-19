@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "repository": "https://github.com/Hyphae-Research-Foundation/hyphae",
+  "sources": [
+    {"path":"README.md","kind":"product-overview","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["overview","release"],"authorityRank":50,"lifecycleStatus":"published","versionScope":["3.0.0","current"]},
+    {"path":"CHANGELOG.md","kind":"changelog","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["release","compatibility"],"authorityRank":70,"lifecycleStatus":"published","versionScope":["all"]},
+    {"path":"LICENSE-POLICY.md","kind":"license-policy","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["license"],"authorityRank":95,"lifecycleStatus":"published","versionScope":["current"]},
+    {"path":"compatibility/README.md","kind":"compatibility-fixtures","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["compatibility","evidence"],"authorityRank":85,"lifecycleStatus":"published","versionScope":["all"]},
+    {"path":"contracts/README.md","kind":"contract-index","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["api","protocol"],"authorityRank":85,"lifecycleStatus":"published","versionScope":["current"]},
+    {"path":"mcp/README.md","kind":"mcp-contract-guide","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["mcp","security","capability"],"authorityRank":80,"lifecycleStatus":"published","versionScope":["3.0.0","current"]},
+    {"path":"docs/product/claims.md","kind":"claims-authority","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["claim"],"authorityRank":100,"lifecycleStatus":"published","versionScope":["current"]},
+    {"path":"docs/product/native-capabilities.md","kind":"capability-matrix","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["capability","limits"],"authorityRank":95,"lifecycleStatus":"published","versionScope":["3.0.0"]},
+    {"path":"docs/product/agent-memory.md","kind":"product-contract","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["agent-memory","capability"],"authorityRank":75,"lifecycleStatus":"unreleased","versionScope":["3.0.0","unreleased"]},
+    {"path":"docs/gates/native-gate-status.md","kind":"gate-status","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["evidence","release","performance"],"authorityRank":95,"lifecycleStatus":"published","versionScope":["1.2.0","2.2.0","3.0.0"]},
+    {"path":"docs/release/receipts/3.0.0.md","kind":"publication-receipt","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["release","evidence"],"authorityRank":100,"lifecycleStatus":"published","versionScope":["3.0.0"]},
+    {"path":"docs/native/sql-semantics-v1.md","kind":"normative-specification","format":"markdown","license":"Apache-2.0","authorityDomains":["sql","capability","claim"],"authorityRank":95,"lifecycleStatus":"published","versionScope":["3.0.0","native-v1"]},
+    {"path":"docs/native/mvcc-commit-v1.md","kind":"normative-specification","format":"markdown","license":"Apache-2.0","authorityDomains":["transactions","durability","claim"],"authorityRank":95,"lifecycleStatus":"published","versionScope":["3.0.0","native-v1"]},
+    {"path":"docs/native/local-product-v1.md","kind":"normative-specification","format":"markdown","license":"Apache-2.0","authorityDomains":["topology","capability","limits"],"authorityRank":95,"lifecycleStatus":"published","versionScope":["3.0.0","native-v1"]},
+    {"path":"docs/native/directory-format-v1.md","kind":"normative-specification","format":"markdown","license":"Apache-2.0","authorityDomains":["compatibility","migration","storage"],"authorityRank":95,"lifecycleStatus":"published","versionScope":["3.0.0","native-v1"]},
+    {"path":"docs/performance/microsecond-first.md","kind":"performance-policy","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["performance","claim"],"authorityRank":55,"lifecycleStatus":"historical","versionScope":["pre-G7-baseline"]},
+    {"path":"contracts/native-mcp-v2.json","kind":"machine-contract","format":"json","license":"Apache-2.0","authorityDomains":["mcp","api","security"],"authorityRank":100,"lifecycleStatus":"published","versionScope":["3.0.0","contract-v2"]},
+    {"path":"contracts/openapi/hyphae-v2.yaml","kind":"machine-contract","format":"yaml","license":"Apache-2.0","authorityDomains":["http","api","protocol"],"authorityRank":100,"lifecycleStatus":"published","versionScope":["3.0.0","v2"]},
+    {"path":"config/native-gate-status.json","kind":"machine-evidence-index","format":"json","license":"Apache-2.0","authorityDomains":["evidence","release"],"authorityRank":100,"lifecycleStatus":"published","versionScope":["current"]},
+    {"path":"contracts/native-access-control-v1.json","kind":"machine-contract","format":"json","license":"Apache-2.0","authorityDomains":["security","permissions"],"authorityRank":100,"lifecycleStatus":"published","versionScope":["3.0.0","contract-v1"]}
+  ]
+}

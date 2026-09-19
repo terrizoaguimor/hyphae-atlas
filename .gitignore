@@ -1,0 +1,25 @@
+# Dependencies and generated application output
+node_modules/
+.next/
+out/
+dist/
+*.tsbuildinfo
+
+# Sanity build output
+.sanity/
+
+# Generated evaluation and local evidence output
+evaluation/results/
+artifacts-local/
+semantic-review/
+
+# Local environment files containing secrets
+.env
+.env.*
+!.env.example
+
+# Local logs and editor files
+*.log
+.DS_Store
+.vscode/
+.idea/
