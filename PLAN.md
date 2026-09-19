@@ -854,7 +854,8 @@ Este documento es la autoridad de alcance para el MVP. Cualquier funcionalidad n
 ### Pendiente por publicación externa
 
 - Repositorio público creado y `main` publicado en https://github.com/terrizoaguimor/hyphae-atlas.
-- Desplegar la aplicación con una cuenta/CLI de hosting autenticada.
+- Aplicación replay-only desplegada en https://atlas.terrizoaguimor.dev mediante build clean-room sin secretos.
+- Rotar y cargar secretos runtime para activar live; verificar bindings de rate limit.
 - Capturar screenshots del outline/conflicto.
 - Grabar video, publicar Agent Session y sustituir placeholders del submission.
 

@@ -37,3 +37,10 @@ Never configure `SANITY_WRITE_TOKEN` or `SANITY_DEPLOY_TOKEN` in the deployed we
 ## Reporting
 
 Do not include live credentials in an issue. Describe the affected route and reproduction with placeholders, then rotate potentially affected credentials immediately.
+
+
+## Cloudflare controls
+
+`wrangler.jsonc` declares provider-native rate-limit bindings: `AGENT_RATE_LIMITER` allows six live calls per 60 seconds per Cloudflare location, while `EVIDENCE_RATE_LIMITER` allows thirty integrity checks. Routes fail closed if `CLOUDFLARE_DEPLOYMENT=true` and a binding is missing. In-process hourly/client limits remain an additional layer.
+
+Cloudflare builds must use the clean-room deploy script. It clones the committed tree without `.env`, exposes only public build variables, and scans the generated OpenNext bundle for all local secret values before upload.

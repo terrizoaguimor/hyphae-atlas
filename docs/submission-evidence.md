@@ -40,14 +40,15 @@ Sanity Studio/CLI is isolated in `devDependencies`. Its transitive development g
 - Context smoke passes and observes both required tools.
 - The final strict 12-case corpus passed in one uninterrupted run with zero failures.
 
-## External actions still required
+## Publication status and remaining actions
 
-1. Review and capture the Knowledge Base outline and resolved authority conflict for the article.
-2. Repository published at https://github.com/terrizoaguimor/hyphae-atlas.
-3. Deploy the web application and set server-side environment secrets.
-4. Record the final demo video.
-5. Curate and publish an Agent Session after secret review.
-6. Replace deployment/repository/session placeholders in `submission-draft.md` and publish the DEV post.
+- ✅ Knowledge Base built and available in Context.
+- ✅ Repository published at https://github.com/terrizoaguimor/hyphae-atlas.
+- ✅ Replay-ready web application deployed at https://atlas.terrizoaguimor.dev from a secret-scanned OpenNext clean-room build.
+- ⏳ Rotate and configure runtime secrets, then perform the remote live-query smoke.
+- ⏳ Capture the final Knowledge Base/conflict screenshots and demo video.
+- ⏳ Curate and publish an Agent Session after secret review.
+- ⏳ Replace video/session placeholders in `submission-draft.md` and publish the DEV post.
 
 ## Evidence to capture manually
 
@@ -73,7 +74,7 @@ Sanity Studio/CLI is isolated in `devDependencies`. Its transitive development g
 
 - Broad project token replaced by separate Viewer, Editor/importer, and Deploy Studio tokens; the broad `Dev Challenge` token was revoked.
 - Production client requires `SANITY_READ_TOKEN` and cannot fall back to the Editor token.
-- Actual `knowledge_base_read` calls are replayed server-side for audit; each finding citation must appear in retrieved tool output before it can resolve.
+- Atlas owns `knowledge_base_read`; each finding citation must appear in the exact retrieved tool output before it can resolve.
 - Model-provided URLs are not clickable. Only resolver-owned upstream GitHub URLs appear in the evidence ledger.
 - Forged citation regression (`https://example.invalid/README.md`) is rejected.
 - Body byte limit, five-second completion deadline, post-validation model budgets, two-slot concurrency, and streamed upstream hashing are active.

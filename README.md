@@ -219,3 +219,17 @@ See [`ATTRIBUTION.md`](ATTRIBUTION.md) for source and license handling.
 ## Deployment credential matrix
 
 The web runtime receives only the selected provider key, `SANITY_CONTEXT_TOKEN`, and `SANITY_READ_TOKEN`. `SANITY_WRITE_TOKEN` belongs only to `corpus:import`; `SANITY_DEPLOY_TOKEN` belongs only to schema/Studio deployment. See [`SECURITY.md`](SECURITY.md) for API bounds, cancellation, audited grounding, edge rate limiting, and the pre-publication checklist.
+
+
+## Cloudflare deployment
+
+Production runs on Cloudflare Workers through OpenNext at https://atlas.terrizoaguimor.dev.
+
+```bash
+npm run build:cloudflare
+npm run deploy:cloudflare
+```
+
+Both commands use `scripts/cloudflare-safe-deploy.mjs`, which requires a clean commit, clones it without `.env`, builds with public variables only, and scans 1,000+ generated files against every local secret value before deployment. `wrangler.jsonc` configures the custom domain and Cloudflare-native rate-limit bindings for live model calls and SHA verification.
+
+Runtime secrets must be added with `wrangler secret put`; never pass the offline Editor or Deploy Studio tokens to the Worker.

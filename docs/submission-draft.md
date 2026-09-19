@@ -24,7 +24,7 @@ Hyphae and its documentation existed before this challenge. I built the Sanity m
 
 <!-- Replace before publishing -->
 
-- Live application: `<DEPLOYMENT_URL>`
+- Live application: `https://atlas.terrizoaguimor.dev`
 - Video walkthrough: `<VIDEO_URL>`
 
 The walkthrough demonstrates a Native 2.x → 3.0 migration question, rejects a dedicated-hardware latency claim that overstates G7, and distinguishes an unreleased Agent Memory candidate from the published 3.0.0 binaries.

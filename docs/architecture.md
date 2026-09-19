@@ -97,3 +97,8 @@ Six real Context runs—three modes in English and Spanish—are captured as pub
 - Browser cancellation returns 499.
 - Provider, Context, parsing, schema, or grounding failures fail closed with redacted errors.
 - Missing evidence should produce `unknown` or `unproven`, never a guessed answer.
+
+
+## Cloudflare deployment
+
+OpenNext packages Next.js for Workers. The clean-room deploy script builds from a committed clone without `.env`, supplies only public metadata, and scans the complete `.open-next` output against local secret values before deployment. Cloudflare rate-limit bindings guard live agent and evidence-verification routes; the existing in-process quotas remain defense in depth.

@@ -11,6 +11,18 @@
   "observability": {
     "enabled": true
   },
+  "ratelimits": [
+    {
+      "name": "AGENT_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {"limit": 6, "period": 60}
+    },
+    {
+      "name": "EVIDENCE_RATE_LIMITER",
+      "namespace_id": "1002",
+      "simple": {"limit": 30, "period": 60}
+    }
+  ],
   "routes": [
     {
       "pattern": "atlas.terrizoaguimor.dev",
@@ -19,6 +31,7 @@
   ],
   "vars": {
     "MODEL_PROVIDER": "xai",
+    "CLOUDFLARE_DEPLOYMENT": "true",
     "XAI_MODEL": "grok-4.6",
     "SANITY_PROJECT_ID": "v2ulbd4b",
     "SANITY_DATASET": "production",

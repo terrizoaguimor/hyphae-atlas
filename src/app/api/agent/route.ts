@@ -7,6 +7,7 @@ import {readJsonBody, BodyJsonError, BodyLimitError, BodyTimeoutError} from "@/s
 import {REQUEST_LIMITS} from "@/security/limits";
 import {acquireAgentSlot, clientIdentity, consumeRateLimit} from "@/security/rate-limit";
 import {publicError} from "@/security/redaction";
+import {consumeCloudflareLimit} from "@/security/cloudflare-rate-limit";
 import {combinedDeadline} from "@/security/deadline";
 
 export const runtime = "nodejs";
@@ -32,6 +33,8 @@ export async function POST(request: Request) {
     return NextResponse.json({error: "Request admission failed"}, {status: 400});
   }
 
+  const edgeRate = await consumeCloudflareLimit("AGENT_RATE_LIMITER", "global-live-query-budget");
+  if (!edgeRate.allowed) return NextResponse.json({error: edgeRate.available ? "Cloudflare live-query rate limit reached. Use an instant replay or retry shortly." : "Cloudflare rate-limit binding is unavailable; live queries fail closed."}, {status: edgeRate.available ? 429 : 503, headers: {"Retry-After": "60"}});
   const clientRate = consumeRateLimit("agent-client", identity, {limit: REQUEST_LIMITS.agentRequestsPerWindow, windowMs: REQUEST_LIMITS.agentWindowMs});
   if (!clientRate.allowed) return rateResponse(clientRate.resetAt);
   const globalRate = consumeRateLimit("agent-global", "all", {limit: REQUEST_LIMITS.globalRequestsPerWindow, windowMs: REQUEST_LIMITS.globalWindowMs});

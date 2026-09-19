@@ -9,6 +9,7 @@
     "type": "git",
     "url": "https://github.com/terrizoaguimor/hyphae-atlas.git"
   },
+  "homepage": "https://atlas.terrizoaguimor.dev",
   "type": "module",
   "scripts": {
     "dev": "next dev",
