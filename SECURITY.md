@@ -56,3 +56,10 @@ Both POST routes reject cross-origin requests in Cloudflare production. Global h
 ### CSP limitation
 
 Next.js static hydration currently requires inline framework scripts, so `script-src` retains `'unsafe-inline'`. `script-src-attr 'none'` still blocks inline event handlers, and the application has no user-controlled HTML rendering sink. This is a documented partial XSS defense, not a nonce-based strict CSP claim. A future dynamic nonce deployment can remove the exception after OpenNext compatibility is verified.
+
+
+## Adjudication and Judge Mode
+
+`GET /api/adjudications/g7` accepts no user query or identifier. It projects one fixed published Sanity record into a validated public DTO and excludes raw source content, internal references, revisions, project settings, and tokens. Before returning `humanReviewed: true`, the server recomputes the full canonical decision digest (all prose, scopes, ordered applicability rows/source paths, and reviewed source snapshot digests) and compares it with the code-reviewed digest and pinned corpus commit. Responses are `no-store` and failures use fixed messages.
+
+Judge Mode is replay-only defense in depth: URL state is a closed enum, the claim replay is loaded locally, live controls and Turnstile are absent, the submit handler cannot enter the agent POST branch, and source verification controls are disabled. The recording script accepts only an explicit loopback HTTP(S) app origin, allows only same-origin GET/HEAD requests, blocks and reports every other method/origin, and fails the recording if any disallowed request occurs. This does not weaken the existing production live-query, origin, Turnstile, rate, deadline, or grounding controls.

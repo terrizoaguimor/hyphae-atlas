@@ -18,12 +18,12 @@ const reportCopy = {
   es: {report: "Informe de evidencia", version: "Versión", surface: "Superficie", protocol: "Protocol minor", retrieval: "Recuperación", findings: "Hallazgos", conclusions: "conclusiones fundamentadas", conflicts: "Conflictos detectados", decisions: "decisiones de autoridad", actions: "Acciones recomendadas", noAction: "No se estableció una acción.", limitations: "Limitaciones", noLimits: "No se devolvieron limitaciones adicionales.", ledger: "Registro de fuentes", cited: "fuentes citadas", source: "Fuente", citation: "Cita", preview: "Modo de vista previa", generated: "Generado con", tools: "Herramientas"},
 } as const;
 
-export function ReportView({result, locale}: {result: AgentResult; locale: Locale}) {
+export function ReportView({result, locale, judgeMode = false}: {result: AgentResult; locale: Locale; judgeMode?: boolean}) {
   const {report, retrieval} = result;
   const labels = reportCopy[locale];
   const tooltips = uiCopy[locale].tooltips;
   return (
-    <section className="report" aria-labelledby="report-title">
+    <section className="report" id="report" tabIndex={-1} aria-labelledby="report-title" data-report-ready="true">
       {retrieval.warning ? <div className="preview-warning"><span>{labels.preview}</span>{retrieval.warning}</div> : null}
       <div className="report-hero">
         <div><p className="eyebrow">{labels.report}</p><h2 id="report-title">{report.summary}</h2></div>
@@ -37,7 +37,7 @@ export function ReportView({result, locale}: {result: AgentResult; locale: Local
         <div><span>{labels.retrieval}</span><strong>{retrieval.mode === "sanity-context-mcp" ? "Sanity Context MCP" : "Dataset preview"}</strong></div>
       </div>
 
-      <TracePanel result={result} locale={locale}/>
+      <TracePanel result={result} locale={locale} defaultOpen={judgeMode}/>
 
       <div className="section-block">
         <div className="section-heading"><p className="eyebrow">{labels.findings}</p><span>{report.findings.length} {labels.conclusions}</span></div>
@@ -53,14 +53,14 @@ export function ReportView({result, locale}: {result: AgentResult; locale: Local
         </div>
       </div>
 
-      {report.conflicts.length ? <div className="section-block conflict-section"><div className="section-heading"><p className="eyebrow">{labels.conflicts}</p><span>{report.conflicts.length} {labels.decisions}</span></div>{report.conflicts.map((conflict, index) => <article className="conflict" key={`${conflict.description}-${index}`}><p>{conflict.description}</p><strong>{conflict.resolution}</strong></article>)}</div> : null}
+      {report.conflicts.length ? <div className="section-block conflict-section" id="report-conflicts" data-conflict-count={report.conflicts.length}><div className="section-heading"><p className="eyebrow">{labels.conflicts}</p><span>{report.conflicts.length} {labels.decisions}</span></div>{report.conflicts.map((conflict, index) => <article className="conflict" key={`${conflict.description}-${index}`}><p>{conflict.description}</p><strong>{conflict.resolution}</strong></article>)}</div> : null}
 
       <div className="report-columns">
         <div className="section-block compact"><p className="eyebrow">{labels.actions}</p>{report.recommendedActions.length ? <ol>{report.recommendedActions.map((action) => <li key={action}>{action}</li>)}</ol> : <p className="muted">{labels.noAction}</p>}</div>
         <div className="section-block compact"><p className="eyebrow">{labels.limitations}</p>{report.limitations.length ? <ul>{report.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}</ul> : <p className="muted">{labels.noLimits}</p>}</div>
       </div>
 
-      <EvidenceLedger sources={result.evidence.sources} locale={locale}/>
+      <EvidenceLedger sources={result.evidence.sources} locale={locale} allowVerification={!judgeMode}/>
 
       <p className="runtime-note">{labels.generated} {retrieval.model} · {(retrieval.durationMs / 1000).toFixed(1)}s{retrieval.toolsUsed.length ? ` · ${labels.tools}: ${retrieval.toolsUsed.join(", ")}` : ""}</p>
     </section>

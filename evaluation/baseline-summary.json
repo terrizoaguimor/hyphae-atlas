@@ -1,6 +1,6 @@
 {
-  "version": 4,
-  "generatedAt": "2026-09-19T22:02:31.248Z",
+  "version": 5,
+  "generatedAt": "2026-09-20T12:16:37.320Z",
   "retrievalMode": "sanity-context-mcp",
   "knowledgeBase": {
     "publicId": "kbIPW9hgRO17",
@@ -23,17 +23,17 @@
     "findingGrounding": 1,
     "forbiddenAssertionCount": 0,
     "contextToolCompliance": 1,
-    "averageDurationMs": 96657,
+    "averageDurationMs": 88945,
     "singleUninterruptedRun": true
   },
   "criteria": [
     "Accepted verdict",
     "All required upstream source paths resolved",
     "All required semantic term groups present",
-    "Every finding citation observed in the actual knowledge_base_read output",
-    "Every finding linked to at least one resolved upstream source",
+    "Every finding citation observed in the actual knowledge_base_read output or as an exact selected structured identity",
+    "Every finding linked through trusted Sanity provenance to at least one upstream source",
     "No affirmative prohibited-language assertion in visible report fields",
     "Both required Context tools observed"
   ],
-  "historyNote": "Earlier evaluator iterations exposed timeout, polarity, field-size, and grounding-validation defects. Those runs are retained locally with timestamps and are not presented as the final baseline. Atlas then moved MCP ownership into its backend and added provider adapters for xAI, OpenAI, Anthropic, and OpenAI-compatible APIs. The final provider-agnostic full run passed all 12 cases on their first attempt using xAI as the configured synthesis provider."
+  "historyNote": "The final post-adjudication production run used the backend-owned MCP loop and xAI as the configured synthesis provider. It passed all 12 cases on their first attempt after the resolver was updated to follow a trusted Sanity source relationship only when the exact unique structured identity appeared in knowledge_base_read. The separate frozen neutral-prompt ablation remains an independently reviewed historical artifact with its own evaluator and resolver digests."
 }

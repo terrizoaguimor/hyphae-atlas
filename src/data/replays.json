@@ -1,15 +1,15 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-19T21:42:54.958Z",
+  "generatedAt": "2026-09-20T05:09:19.006Z",
   "replays": {
     "en.migration": {
       "label": "Native 2.x → 3.0 migration",
       "query": {
         "mode": "migration",
-        "locale": "en",
         "question": "Can a Hyphae 2.x Native directory be opened with 3.0, when does it change, and is downgrade safety established?",
         "currentVersion": "2.x Native",
-        "targetVersion": "3.0.0"
+        "targetVersion": "3.0.0",
+        "locale": "en"
       },
       "result": {
         "report": {
@@ -262,7 +262,8 @@
               "hyphaeAtlas.source.06572a96a58dc510037d5efa",
               "hyphaeAtlas.source.40a6987af2e16fd0703810dc"
             ]
-          ]
+          ],
+          "conflictCoverage": 1
         },
         "trace": [
           {
@@ -306,11 +307,11 @@
       "label": "Native MCP default authority",
       "query": {
         "mode": "capability",
-        "locale": "en",
         "question": "Does the Hyphae Native MCP adapter allow mutation tools by default, and what bounds apply?",
         "targetVersion": "3.0.0",
         "surface": "Native MCP",
-        "protocolMinor": 2
+        "protocolMinor": 2,
+        "locale": "en"
       },
       "result": {
         "report": {
@@ -542,7 +543,8 @@
               "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3",
               "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27"
             ]
-          ]
+          ],
+          "conflictCoverage": 1
         },
         "trace": [
           {
@@ -587,148 +589,141 @@
       "label": "G7 latency claim",
       "query": {
         "mode": "claim",
-        "locale": "en",
         "question": "Can G7 be cited as dedicated-hardware or portable latency certification for Hyphae 3.0.0?",
-        "targetVersion": "3.0.0"
+        "targetVersion": "3.0.0",
+        "locale": "en"
       },
       "result": {
         "report": {
           "mode": "claim",
           "verdict": "unsupported",
-          "summary": "G7 cannot be cited as dedicated-hardware or portable latency certification for Hyphae 3.0.0. Canonical claim records classify portable latency, dedicated-hardware latency certified, and bare-metal performance certified as prohibited G7 wordings even when qualified. Retrieved G7 evidence is limited to a DigitalOcean C-60 virtual machine under hyphaeAtlas.evidence.g7-c60 and is quotable only as virtualized operational-scale evidence with explicit non-certification and access-control qualifiers.",
+          "summary": "G7 cannot be cited as dedicated-hardware or portable latency certification for Hyphae 3.0.0. Canonical claim policy prohibits that statement. G7 is closed only as virtualized DigitalOcean C-60 operational-scale evidence at pre-1.2 commit ff188af; dedicated-hardware latency, portable latency, bare metal, and background interference remain non-claims. The 3.0.0 receipt is scoped G8 release evidence, not a dedicated-hardware G7 rerun.",
           "applicability": {
             "version": "3.0.0",
-            "surface": "hyphaeAtlas.evidence.g7-c60",
+            "surface": null,
             "protocolMinor": null
           },
           "findings": [
             {
-              "statement": "G7 cannot be cited as dedicated-hardware or portable latency certification for Hyphae 3.0.0.",
+              "statement": "G7 certifies portable or dedicated-hardware latency for Hyphae 3.0.0.",
               "status": "rejected",
               "qualifiers": [
-                "Version scope is Hyphae 3.0.0 only",
-                "Even qualified dedicated-hardware or portable latency wording is a certification violation"
-              ],
-              "sourceUrls": [
-                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
-              ]
-            },
-            {
-              "statement": "The wording portable latency, dedicated-hardware latency certified, and bare-metal performance certified is explicitly prohibited in any compliant reference to G7 evidence.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Prohibition applies to Hyphae 3.0.0",
-                "Making any of these claims even qualified is a certification violation"
-              ],
-              "sourceUrls": [
-                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
-              ]
-            },
-            {
-              "statement": "G7 evidence is strictly limited to a DigitalOcean C-60 virtual machine under virtualized operational-scale closure hyphaeAtlas.evidence.g7-c60; no latency certification extends beyond that environment.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Virtualized operational-scale evidence only",
-                "No latency certification"
+                "Prohibited claim hyphaeAtlas.claim.g7-portable-latency for v3.0.0",
+                "Banned terms: portable latency, dedicated-hardware latency certified, bare-metal performance certified",
+                "Environment scope: DigitalOcean C-60 virtual machine",
+                "Required qualifiers if G7 is mentioned: virtualized operational-scale evidence; no latency certification; the G7 profile predates later access-control work"
               ],
               "sourceUrls": [
                 "hyphaeAtlas.claim.g7-portable-latency — Dataset",
-                "G7 virtualized operational-scale closure — Dataset"
-              ]
-            },
-            {
-              "statement": "Any compliant reference to G7 latency evidence must include all required qualifiers: virtualized operational-scale DigitalOcean C-60 VM context; G7 does not constitute a latency certification; the G7 profile predates later access-control work.",
-              "status": "confirmed",
-              "qualifiers": [
-                "All three qualifiers are required together",
-                "Applies to Hyphae 3.0.0 only"
-              ],
-              "sourceUrls": [
-                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
-              ]
-            },
-            {
-              "statement": "G7 C-60 is the virtualized operational-scale performance-evidence class and is quotable only with the explicit virtualized, no latency certification qualifier; dedicated hardware is a separate class requiring bare-metal receipts.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Only the dedicated-hardware class supports comparative statements",
-                "Each dedicated-hardware statement must name its receipt"
-              ],
-              "sourceUrls": [
                 "Canonical claims and non-claims — Dataset"
               ]
             },
             {
-              "statement": "The G7 gate was executed at commit ff188af on a DigitalOcean C-60 virtual machine and completed 11 surfaces and 33 concurrency cells, with recorded limitations of no dedicated-hardware latency certification, no background-interference certification, and predating access-control work.",
+              "statement": "G7 is closed as virtualized operational-scale evidence on DigitalOcean C-60 at commit ff188af.",
               "status": "confirmed",
               "qualifiers": [
-                "Functional concurrency, accounting, correctness, ANN recall, and durable recovery were observed",
-                "Limitations explicitly exclude dedicated-hardware latency certification"
+                "11/11 surfaces and 33/33 C-60 operational-scale cells",
+                "Closure does not certify dedicated-hardware latency targets, background interference, or bare-metal performance",
+                "G7 closed on a pre-1.2 commit before durable access control entered the commit path"
               ],
               "sourceUrls": [
-                "G7 virtualized operational-scale closure — Dataset"
+                "Native gate status — Dataset",
+                "native-gate-status.json — Dataset",
+                "G7 closure and portability adjudication — Dataset"
+              ]
+            },
+            {
+              "statement": "Dedicated-hardware latency certification for 3.0.0 is unsupported.",
+              "status": "confirmed",
+              "qualifiers": [
+                "The recorded G7 run is virtualized",
+                "The 3.0.0 receipt is G8 release evidence, not a dedicated-hardware G7 rerun",
+                "Dedicated-hardware latency and background interference are non-claims"
+              ],
+              "sourceUrls": [
+                "G7 closure and portability adjudication — Dataset",
+                "README.md § README.md — Dataset"
+              ]
+            },
+            {
+              "statement": "Portable latency certification is unsupported.",
+              "status": "confirmed",
+              "qualifiers": [
+                "Evidence is explicitly environment-scoped",
+                "Virtualized operational-scale evidence is quotable only with the explicit qualifier virtualized, no latency certification",
+                "Shared or virtualized machines may publish observations but cannot establish a hard regression threshold"
+              ],
+              "sourceUrls": [
+                "G7 closure and portability adjudication — Dataset",
+                "Canonical claims and non-claims — Dataset",
+                "Microsecond-first performance contract — Dataset"
               ]
             }
           ],
           "conflicts": [
             {
-              "description": "Latency baseline prose states that no G7 performance gate has passed and that current receipts none pass G7, while release verification records G7 executed to completion on DigitalOcean C-60 and canonical claims refer to the closed G7 C-60 authority.",
-              "resolution": "Treat the baseline no-G7-passed wording as stale for closure status. Exact release receipts and claim records govern: do not claim that G7 is open. Closure of virtualized G7 C-60 evidence still does not authorize portable or dedicated-hardware latency certification.",
+              "description": "Current gate status records G7 as closed, while G7 remains non-certifying for portable, dedicated-hardware, and bare-metal latency and ran on pre-1.2 commit ff188af rather than the 3.0.0 release commit.",
+              "resolution": "The G7 closure and portability adjudication supports G7 closure only as DigitalOcean C-60 evidence at ff188af. Portable latency certification is unsupported. Dedicated-hardware latency certification for 3.0.0 is unsupported. Closure status must not be generalized into a portable or dedicated-hardware latency claim for 3.0.0.",
               "sourceUrls": [
-                "Microsecond-first performance contract § Microsecond-first performance contract — Dataset",
-                "Microsecond-first performance contract § Microsecond-first performance contract › Current baseline — Dataset",
-                "G7 virtualized operational-scale closure — Dataset",
-                "Canonical claims and non-claims — Dataset"
+                "G7 closure and portability adjudication — Dataset",
+                "Native gate status — Dataset",
+                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
               ]
             }
           ],
           "recommendedActions": [
-            "Do not cite G7 as dedicated-hardware, portable, or bare-metal latency certification for Hyphae 3.0.0.",
-            "If G7 is referenced at all, include every required qualifier: DigitalOcean C-60 virtualized operational-scale evidence only; G7 is not a latency certification; the profile predates later access-control work.",
-            "Keep dedicated-hardware claims on bare-metal receipts in the dedicated-hardware evidence class; do not reuse G7 C-60 for that class.",
-            "If discussing G7 closure, treat baseline no-G7-passed prose as stale for closure status and do not describe G7 as open."
+            "Do not cite G7 as portable latency, dedicated-hardware latency certified, or bare-metal performance certified for Hyphae 3.0.0.",
+            "If G7 is mentioned, use the required qualifiers: virtualized operational-scale evidence; no latency certification; the G7 profile predates later access-control work.",
+            "Treat the 3.0.0 publication receipt as scoped G8 release evidence, not as a G7 dedicated-hardware rerun.",
+            "Cite later-release performance against the G7 matrix only as this scoped pre-access-control profile, or wait for a G7 re-execution on a release commit carrying the added work."
           ],
           "limitations": [
-            "The prohibited-claim classification is documented for Hyphae 3.0.0 only.",
-            "G7 execution is recorded at commit ff188af, which is not the 3.0.0 source commit 24bce1accdff8d14127797afe6f237a57c1cd4f3.",
-            "Retrieved content does not present dedicated-hardware receipts that could support a dedicated-hardware latency certification claim.",
-            "Performance baseline documents still contain stale no-G7-passed language that must be surfaced rather than silently merged."
+            "G7 closed on pre-1.2 commit ff188af before durable access control entered the commit path, so 1.2.x and later paths including 3.0.0 add unmeasured work.",
+            "The 3.0.0 G8 aggregate binds release commit 24bce1accdff8d14127797afe6f237a57c1cd4f3 and is not a dedicated-hardware G7 rerun.",
+            "G7 is class 2 virtualized operational scale; only class 3 dedicated-hardware receipts support comparative statements.",
+            "Any latency number without its environment class and receipt remains prohibited."
           ],
           "sources": [
             {
-              "title": "G7 Certification Scope and Claim Limits",
-              "url": "hyphaeAtlas.claim.g7-portable-latency — Dataset",
-              "path": "performance/g7_certification",
-              "commit": null
-            },
-            {
-              "title": "Normative Claim Records and Non-Claims",
+              "title": "Canonical claims and non-claims — Dataset",
               "url": "Canonical claims and non-claims — Dataset",
-              "path": "capabilities/claim_records",
+              "path": "capabilities/claim_policy",
               "commit": null
             },
             {
-              "title": "Release Verification and Attestation",
-              "url": "G7 virtualized operational-scale closure — Dataset",
-              "path": "releases/verification",
-              "commit": "ff188af"
+              "title": "hyphaeAtlas.claim.g7-portable-latency — Dataset",
+              "url": "hyphaeAtlas.claim.g7-portable-latency — Dataset",
+              "path": "capabilities/claim_policy",
+              "commit": null
             },
             {
-              "title": "Hyphae 3.0.0 exact-SHA G8 release closure",
-              "url": "Hyphae 3.0.0 exact-SHA G8 release closure — Dataset",
-              "path": "releases/verification",
+              "title": "README.md § README.md — Dataset",
+              "url": "README.md § README.md — Dataset",
+              "path": "capabilities/product_spec",
               "commit": "24bce1accdff8d14127797afe6f237a57c1cd4f3"
             },
             {
-              "title": "Latency Baselines and Measurement Protocol",
-              "url": "Microsecond-first performance contract § Microsecond-first performance contract — Dataset",
-              "path": "performance/baselines",
-              "commit": null
+              "title": "native-gate-status.json — Dataset",
+              "url": "native-gate-status.json — Dataset",
+              "path": "releases/gate_status",
+              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632"
             },
             {
-              "title": "Latency Baselines and Measurement Protocol",
-              "url": "Microsecond-first performance contract § Microsecond-first performance contract › Current baseline — Dataset",
-              "path": "performance/baselines",
+              "title": "Native gate status — Dataset",
+              "url": "Native gate status — Dataset",
+              "path": "releases/gate_status",
+              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632"
+            },
+            {
+              "title": "G7 closure and portability adjudication — Dataset",
+              "url": "G7 closure and portability adjudication — Dataset",
+              "path": "performance",
+              "commit": "ff188af"
+            },
+            {
+              "title": "Microsecond-first performance contract — Dataset",
+              "url": "Microsecond-first performance contract — Dataset",
+              "path": "performance",
               "commit": null
             }
           ]
@@ -740,10 +735,27 @@
             "knowledge_base_read"
           ],
           "model": "xai/grok-4.6",
-          "durationMs": 103088
+          "durationMs": 90207
         },
         "evidence": {
           "sources": [
+            {
+              "id": "hyphaeAtlas.source.33bd399fa01dfd572d96c4b7",
+              "title": "native-gate-status.json",
+              "path": "config/native-gate-status.json",
+              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/config/native-gate-status.json",
+              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
+              "digest": "ad622b1013606880d323c999121e219cc6b0f3f68f81ba3300d3e61c70ee7364",
+              "license": "Apache-2.0",
+              "lifecycleStatus": "published",
+              "authorityRank": 100,
+              "matchedBy": [
+                "canonical-citation"
+              ],
+              "supportsFindings": [
+                1
+              ]
+            },
             {
               "id": "hyphaeAtlas.source.56faf2da914ba1aae0055935",
               "title": "Canonical claims and non-claims",
@@ -757,14 +769,13 @@
               "matchedBy": [
                 "canonical-citation",
                 "knowledge-base-entry",
-                "structured-reference"
+                "observed-structured-reference"
               ],
               "supportsFindings": [
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             },
             {
@@ -780,7 +791,9 @@
               "matchedBy": [
                 "knowledge-base-entry"
               ],
-              "supportsFindings": []
+              "supportsFindings": [
+                3
+              ]
             },
             {
               "id": "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
@@ -793,15 +806,15 @@
               "lifecycleStatus": "published",
               "authorityRank": 95,
               "matchedBy": [
+                "canonical-citation",
                 "knowledge-base-entry",
-                "structured-reference"
+                "observed-structured-reference"
               ],
               "supportsFindings": [
                 0,
                 1,
                 2,
-                3,
-                5
+                3
               ]
             },
             {
@@ -815,29 +828,11 @@
               "lifecycleStatus": "published",
               "authorityRank": 95,
               "matchedBy": [
-                "structured-reference"
+                "observed-structured-reference"
               ],
               "supportsFindings": [
-                0,
-                1,
-                2,
-                3
+                0
               ]
-            },
-            {
-              "id": "hyphaeAtlas.source.06572a96a58dc510037d5efa",
-              "title": "Changelog",
-              "path": "CHANGELOG.md",
-              "url": "https://github.com/Hyphae-Research-Foundation/hyphae/blob/fcccee58a96987867381a5a5fca7cb12dc3bb632/CHANGELOG.md",
-              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
-              "digest": "9a1bdb8e012c9f11d010c447af3657aaa5b90008dbf7f48b04dd08453f9c6664",
-              "license": "CC-BY-SA-4.0",
-              "lifecycleStatus": "published",
-              "authorityRank": 70,
-              "matchedBy": [
-                "knowledge-base-entry"
-              ],
-              "supportsFindings": []
             },
             {
               "id": "hyphaeAtlas.source.0bd23f152cf90d142716d8c3",
@@ -850,10 +845,14 @@
               "lifecycleStatus": "historical",
               "authorityRank": 55,
               "matchedBy": [
-                "canonical-citation",
-                "knowledge-base-entry"
+                "knowledge-base-entry",
+                "observed-structured-reference"
               ],
-              "supportsFindings": []
+              "supportsFindings": [
+                1,
+                2,
+                3
+              ]
             },
             {
               "id": "hyphaeAtlas.source.b335630551682c19a781afeb",
@@ -866,12 +865,14 @@
               "lifecycleStatus": "published",
               "authorityRank": 50,
               "matchedBy": [
-                "knowledge-base-entry"
+                "canonical-citation"
               ],
-              "supportsFindings": []
+              "supportsFindings": [
+                2
+              ]
             }
           ],
-          "coverage": 0.6666666666666666,
+          "coverage": 0,
           "findingSourceIds": [
             [
               "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
@@ -880,24 +881,21 @@
             ],
             [
               "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
-              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
-              "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
-            ],
-            [
-              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
-              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
-              "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
-            ],
-            [
-              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
-              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
-              "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
-            ],
-            [
+              "hyphaeAtlas.source.33bd399fa01dfd572d96c4b7",
+              "hyphaeAtlas.source.0bd23f152cf90d142716d8c3",
               "hyphaeAtlas.source.56faf2da914ba1aae0055935"
             ],
             [
-              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a"
+              "hyphaeAtlas.source.0bd23f152cf90d142716d8c3",
+              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
+              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
+              "hyphaeAtlas.source.b335630551682c19a781afeb"
+            ],
+            [
+              "hyphaeAtlas.source.0bd23f152cf90d142716d8c3",
+              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
+              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
+              "hyphaeAtlas.source.d97e76f790cb66a316b3461a"
             ]
           ],
           "findingCoverage": 1,
@@ -905,9 +903,11 @@
             [
               "hyphaeAtlas.source.0bd23f152cf90d142716d8c3",
               "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
-              "hyphaeAtlas.source.56faf2da914ba1aae0055935"
+              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
+              "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
             ]
-          ]
+          ],
+          "conflictCoverage": 1
         },
         "trace": [
           {
@@ -924,10 +924,10 @@
             "status": "complete",
             "detail": "Backend retrieved 4 validated Knowledge Base entries.",
             "entries": [
-              "performance/g7_certification",
-              "capabilities/claim_records",
-              "releases/verification",
-              "performance/baselines"
+              "capabilities/claim_policy",
+              "capabilities/product_spec",
+              "releases/gate_status",
+              "performance"
             ]
           },
           {
@@ -935,7 +935,7 @@
             "kind": "resolver",
             "name": "evidence_resolver",
             "status": "complete",
-            "detail": "Resolved upstream evidence for 6/6 findings across 7 source documents."
+            "detail": "Resolved upstream evidence for 4/4 findings across 7 source documents."
           },
           {
             "id": "validate",
@@ -945,17 +945,17 @@
             "detail": "Validated the JSON report schema and per-finding source resolution. This is not independent factual validation of the verdict."
           }
         ],
-        "capturedAt": "2026-09-19T21:37:24.189Z"
+        "capturedAt": "2026-09-20T05:07:17.639Z"
       }
     },
     "es.migration": {
       "label": "Migración Native 2.x → 3.0",
       "query": {
         "mode": "migration",
-        "locale": "es",
         "question": "¿Se puede abrir un directorio Native de Hyphae 2.x con 3.0, cuándo cambia y está demostrada la seguridad de un downgrade?",
         "currentVersion": "2.x Native",
-        "targetVersion": "3.0.0"
+        "targetVersion": "3.0.0",
+        "locale": "es"
       },
       "result": {
         "report": {
@@ -1245,7 +1245,8 @@
               "hyphaeAtlas.source.930cfaf0b684f95dd8939b5e",
               "hyphaeAtlas.source.06572a96a58dc510037d5efa"
             ]
-          ]
+          ],
+          "conflictCoverage": 1
         },
         "trace": [
           {
@@ -1289,11 +1290,11 @@
       "label": "Autoridad predeterminada de Native MCP",
       "query": {
         "mode": "capability",
-        "locale": "es",
         "question": "¿El adaptador MCP Native de Hyphae permite herramientas de escritura por defecto y qué límites aplica?",
         "targetVersion": "3.0.0",
         "surface": "Native MCP",
-        "protocolMinor": 2
+        "protocolMinor": 2,
+        "locale": "es"
       },
       "result": {
         "report": {
@@ -1556,7 +1557,8 @@
               "hyphaeAtlas.source.bbc432cf1e07824fdbc95e27",
               "hyphaeAtlas.source.f9f5daec76dbc04efabcb3f3"
             ]
-          ]
+          ],
+          "conflictCoverage": 1
         },
         "trace": [
           {
@@ -1600,139 +1602,167 @@
       "label": "Afirmación de latencia G7",
       "query": {
         "mode": "claim",
-        "locale": "es",
         "question": "¿Podemos citar G7 como certificación de latencia portable o en hardware dedicado para Hyphae 3.0.0?",
-        "targetVersion": "3.0.0"
+        "targetVersion": "3.0.0",
+        "locale": "es"
       },
       "result": {
         "report": {
           "mode": "claim",
           "verdict": "unsupported",
-          "summary": "No. Para Hyphae 3.0.0 no se puede citar G7 como certificación de latencia portable ni de hardware dedicado: esa formulación está clasificada como reivindicación prohibida. La evidencia G7 se limita a una máquina virtual DigitalOcean C-60 (cierre hyphaeAtlas.evidence.g7-c60) y no constituye una certificación de latencia; las expresiones portable latency, dedicated-hardware latency certified y bare-metal performance certified están vetadas incluso con cualificadores.",
+          "summary": "No se puede citar G7 como certificación de latencia portable ni de hardware dedicado para Hyphae 3.0.0: esa afirmación está prohibida y no soportada. G7 está cerrado solo como evidencia operacional virtualizada en DigitalOcean C-60 (commit ff188af) y no certifica latencia portable, hardware dedicado, bare-metal ni interferencia de fondo. El recibo 3.0.0 es evidencia G8 de publicación, no una reejecución G7 en hardware dedicado.",
           "applicability": {
             "version": "3.0.0",
-            "surface": "hyphaeAtlas.evidence.g7-c60",
+            "surface": null,
             "protocolMinor": null
           },
           "findings": [
             {
-              "statement": "Citar G7 como certificación de latencia portable o de hardware dedicado está clasificado como reivindicación prohibida para Hyphae 3.0.0, incluso con cualificadores.",
+              "statement": "La afirmación «G7 certifica latencia portable o en hardware dedicado para Hyphae 3.0.0» está prohibida.",
               "status": "rejected",
               "qualifiers": [
-                "Alcance de versión: Hyphae 3.0.0 únicamente",
-                "Incluso una formulación cualificada constituye violación de certificación"
+                "Evidencia operacional virtualizada",
+                "Sin certificación de latencia",
+                "El perfil G7 es anterior al trabajo de control de acceso",
+                "Términos prohibidos: portable latency, dedicated-hardware latency certified, bare-metal performance certified"
               ],
               "sourceUrls": [
                 "hyphaeAtlas.claim.g7-portable-latency — Dataset"
               ]
             },
             {
-              "statement": "La evidencia G7 está estrictamente limitada a una máquina virtual DigitalOcean C-60 bajo un cierre de escala operativa virtualizada (hyphaeAtlas.evidence.g7-c60); ninguna certificación de latencia se extiende más allá de ese entorno.",
+              "statement": "G7 está cerrado para la ejecución operacional virtualizada DigitalOcean C-60 en el commit ff188af.",
               "status": "confirmed",
               "qualifiers": [
-                "Entorno: DigitalOcean C-60 virtualizada",
-                "Identificador de artefacto: hyphaeAtlas.evidence.g7-c60",
-                "Clase de evidencia: virtualized operational scale"
+                "Ámbito: máquina virtual DigitalOcean C-60",
+                "11 superficies y 33/33 celdas C1/C8/C32",
+                "Establece concurrencia funcional, contabilidad, corrección, recall y recuperación durable a escala operacional"
+              ],
+              "sourceUrls": [
+                "G7 closure and portability adjudication — Dataset",
+                "Native gate status — Dataset"
+              ]
+            },
+            {
+              "statement": "La certificación de latencia portable está no soportada porque la evidencia G7 está acotada al entorno.",
+              "status": "confirmed",
+              "qualifiers": [
+                "Entorno: DigitalOcean C-60 virtual machine",
+                "Clase de evidencia 2: virtualized operational scale",
+                "Citable solo con el calificador «virtualized, no latency certification»"
               ],
               "sourceUrls": [
                 "hyphaeAtlas.claim.g7-portable-latency — Dataset",
-                "G7 virtualized operational-scale closure — Dataset"
-              ]
-            },
-            {
-              "statement": "En cualquier referencia conforme a la evidencia G7 están explícitamente prohibidas las formulaciones portable latency, dedicated-hardware latency certified y bare-metal performance certified.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Prohibición absoluta de esas formas de wording en Hyphae 3.0.0"
-              ],
-              "sourceUrls": [
-                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
-              ]
-            },
-            {
-              "statement": "Cualquier referencia conforme a la evidencia de latencia G7 debe incluir los tres cualificadores obligatorios: evidencia de escala operativa virtualizada (solo el contexto VM DigitalOcean C-60); declaración explícita de que G7 no constituye una certificación de latencia; y aviso de que el perfil G7 es anterior al trabajo posterior de control de acceso.",
-              "status": "confirmed",
-              "qualifiers": [
-                "Virtualized operational-scale evidence",
-                "No latency certification",
-                "Access-control caveat"
-              ],
-              "sourceUrls": [
-                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
-              ]
-            },
-            {
-              "statement": "La clase Virtualized operational scale (autoridad G7 C-60 cerrada) solo es citable con el cualificador explícito virtualized, no latency certification; únicamente la clase Dedicated hardware (recibos bare-metal) admite declaraciones comparativas.",
-              "status": "confirmed",
-              "qualifiers": [
-                "G7 C-60 es autoridad cerrada de escala operativa virtualizada, no de hardware dedicado",
-                "Toda cifra de latencia exige clase de entorno y recibo"
-              ],
-              "sourceUrls": [
+                "G7 closure and portability adjudication — Dataset",
                 "Canonical claims and non-claims — Dataset"
               ]
             },
             {
-              "statement": "El cierre G7 se ejecutó en el commit ff188af en una máquina virtual DigitalOcean C-60; completó 11 superficies y 33 celdas de concurrencia, con concurrencia funcional, contabilidad, corrección, recall ANN y recuperación durable observadas. Limitaciones documentadas: sin certificación de latencia en hardware dedicado; sin certificación de interferencia de fondo; anterior al trabajo de control de acceso en rutas de publicación posteriores.",
+              "statement": "La certificación de latencia en hardware dedicado para 3.0.0 está no soportada: la ejecución G7 registrada es virtualizada y el recibo 3.0.0 es evidencia G8 de publicación, no una reejecución G7 en hardware dedicado.",
               "status": "confirmed",
               "qualifiers": [
-                "commit ff188af",
-                "DigitalOcean C-60",
-                "No dedicated-hardware latency certification",
-                "No background-interference certification",
-                "Predates access-control work"
+                "G7 source commit: ff188af",
+                "Recibo 3.0.0: commit 24bce1accdff8d14127797afe6f237a57c1cd4f3",
+                "Latencia en hardware dedicado e interferencia de fondo son no-claims"
               ],
               "sourceUrls": [
-                "G7 virtualized operational-scale closure — Dataset"
+                "G7 closure and portability adjudication — Dataset",
+                "README.md § README.md — Dataset",
+                "Native gate status — Dataset"
+              ]
+            },
+            {
+              "statement": "Las reclamaciones de rendimiento para 1.2.x y posteriores, incluido 3.0.0, deben citar este perfil G7 acotado de forma explícita o esperar una reejecución G7 en un commit de publicación que incluya el trabajo añadido.",
+              "status": "confirmed",
+              "qualifiers": [
+                "G7 cerrado en un commit anterior a 1.2, antes del control de acceso durable",
+                "El perfil cerrado certifica la matriz operacional del motor sin autorización por operación"
+              ],
+              "sourceUrls": [
+                "Native gate status — Dataset"
               ]
             }
           ],
           "conflicts": [
             {
-              "description": "El cierre G7 se documenta en el commit ff188af, mientras que el commit canónico de código fuente de Hyphae 3.0.0 es 24bce1accdff8d14127797afe6f237a57c1cd4f3.",
-              "resolution": "La clasificación de reivindicación y las limitaciones de G7 se aplican al alcance 3.0.0; el desajuste de commit no autoriza citar G7 como latencia portable o de hardware dedicado. Se conserva como conflicto de aplicabilidad de evidencia. El documento de verificación de 3.0.0 ya declara que G7 no certifica latencia en hardware dedicado.",
+              "description": "El changelog de 3.0.0 informa mediciones en hardware dedicado (i7i.metal-24xl, commit a443c52), mientras que la autoridad G7 y la política de claims acotan G7 a una VM DigitalOcean C-60 y declaran no soportada la certificación de latencia en hardware dedicado para 3.0.0.",
+              "resolution": "Las cifras del changelog no son certificación G7 ni cierran un perfil de latencia portable o de hardware dedicado. G7 permanece cerrado solo como evidencia operacional virtualizada en ff188af; el recibo 3.0.0 gobierna G8, no una reejecución G7 en bare-metal.",
               "sourceUrls": [
-                "G7 virtualized operational-scale closure — Dataset",
-                "Hyphae 3.0.0 exact-SHA G8 release closure — Dataset"
+                "Changelog — Dataset",
+                "G7 closure and portability adjudication — Dataset",
+                "hyphaeAtlas.claim.g7-portable-latency — Dataset"
+              ]
+            },
+            {
+              "description": "El contrato de medición exige hardware dedicado y revelado para umbrales de regresión de rendimiento, pero G7 se cerró en una VM DigitalOcean C-60 virtualizada.",
+              "resolution": "La adjudicación vigente sostiene el cierre G7 acotado a DigitalOcean C-60 en ff188af y declara no soportadas la certificación de latencia portable y la de hardware dedicado para 3.0.0. Las observaciones virtualizadas no establecen umbral duro de regresión ni certificación de latencia.",
+              "sourceUrls": [
+                "Microsecond-first performance contract — Dataset",
+                "G7 closure and portability adjudication — Dataset"
               ]
             }
           ],
           "recommendedActions": [
-            "No citar G7 como certificación de latencia portable, de hardware dedicado o bare-metal para Hyphae 3.0.0.",
-            "Si se menciona G7, incluir los tres cualificadores obligatorios y retener el entorno DigitalOcean C-60, el commit ff188af, el alcance 3.0.0 y los no-reclamos explícitos.",
-            "No tratar G7 como sustituto de la clase Dedicated hardware; las declaraciones comparativas exigen recibos bare-metal con baselines fijados.",
-            "No citar ningún número de latencia sin su clase de entorno y recibo."
+            "No citar G7 como certificación de latencia portable ni de hardware dedicado para Hyphae 3.0.0.",
+            "No emplear los términos prohibidos «portable latency», «dedicated-hardware latency certified» ni «bare-metal performance certified».",
+            "Si se menciona G7, aplicar solo los calificadores requeridos: evidencia operacional virtualizada; sin certificación de latencia; el perfil G7 es anterior al control de acceso.",
+            "No presentar las mediciones de changelog en i7i.metal-24xl (commit a443c52) como certificación G7.",
+            "Tratar el recibo 3.0.0 (commit 24bce1accdff8d14127797afe6f237a57c1cd4f3) como evidencia G8 de publicación, no como recertificación de latencia G7."
           ],
           "limitations": [
-            "Esta clasificación de reivindicación aplica solo a Hyphae 3.0.0.",
-            "La evidencia G7 no cubre hardware dedicado, interferencia de fondo ni el trabajo posterior de control de acceso.",
-            "El commit de ejecución G7 (ff188af) no coincide con el commit de publicación 3.0.0 (24bce1accdff8d14127797afe6f237a57c1cd4f3).",
-            "El contenido recuperado no aporta recibos de hardware dedicado que sustituyan a G7."
+            "G7 se observó en el commit pre-1.2 ff188af, sin autorización por operación en las rutas medidas.",
+            "No hay reejecución G7 en el commit de publicación 3.0.0.",
+            "Las observaciones en máquinas virtualizadas no establecen umbral duro de regresión.",
+            "Las cifras de changelog en hardware dedicado no sustituyen recibos de clase 3 ni certificación G7."
           ],
           "sources": [
             {
               "title": "hyphaeAtlas.claim.g7-portable-latency — Dataset",
               "url": "hyphaeAtlas.claim.g7-portable-latency — Dataset",
-              "path": "performance/g7_certification",
+              "path": "capabilities/claim_policy",
               "commit": null
             },
             {
               "title": "Canonical claims and non-claims — Dataset",
               "url": "Canonical claims and non-claims — Dataset",
-              "path": "capabilities/claim_records",
+              "path": "capabilities/claim_policy",
               "commit": null
             },
             {
-              "title": "G7 virtualized operational-scale closure — Dataset",
-              "url": "G7 virtualized operational-scale closure — Dataset",
-              "path": "releases/verification",
+              "title": "README.md § README.md — Dataset",
+              "url": "README.md § README.md — Dataset",
+              "path": "capabilities/product_spec",
+              "commit": "24bce1accdff8d14127797afe6f237a57c1cd4f3"
+            },
+            {
+              "title": "G7 closure and portability adjudication — Dataset",
+              "url": "G7 closure and portability adjudication — Dataset",
+              "path": "performance",
               "commit": "ff188af"
             },
             {
-              "title": "Hyphae 3.0.0 exact-SHA G8 release closure — Dataset",
-              "url": "Hyphae 3.0.0 exact-SHA G8 release closure — Dataset",
-              "path": "releases/verification",
-              "commit": "24bce1accdff8d14127797afe6f237a57c1cd4f3"
+              "title": "Microsecond-first performance contract — Dataset",
+              "url": "Microsecond-first performance contract — Dataset",
+              "path": "performance",
+              "commit": null
+            },
+            {
+              "title": "Changelog — Dataset",
+              "url": "Changelog — Dataset",
+              "path": "releases/changelog",
+              "commit": "a443c52"
+            },
+            {
+              "title": "Native gate status — Dataset",
+              "url": "Native gate status — Dataset",
+              "path": "releases/gate_status",
+              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632"
+            },
+            {
+              "title": "native-gate-status.json — Dataset",
+              "url": "native-gate-status.json — Dataset",
+              "path": "releases/gate_status",
+              "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632"
             }
           ]
         },
@@ -1743,7 +1773,7 @@
             "knowledge_base_read"
           ],
           "model": "xai/grok-4.6",
-          "durationMs": 109240
+          "durationMs": 120968
         },
         "evidence": {
           "sources": [
@@ -1760,14 +1790,13 @@
               "matchedBy": [
                 "canonical-citation",
                 "knowledge-base-entry",
-                "structured-reference"
+                "observed-structured-reference"
               ],
               "supportsFindings": [
                 0,
                 1,
                 2,
-                3,
-                4
+                3
               ]
             },
             {
@@ -1781,8 +1810,7 @@
               "lifecycleStatus": "published",
               "authorityRank": 100,
               "matchedBy": [
-                "knowledge-base-entry",
-                "structured-reference"
+                "knowledge-base-entry"
               ],
               "supportsFindings": []
             },
@@ -1797,15 +1825,16 @@
               "lifecycleStatus": "published",
               "authorityRank": 95,
               "matchedBy": [
+                "canonical-citation",
                 "knowledge-base-entry",
-                "structured-reference"
+                "observed-structured-reference"
               ],
               "supportsFindings": [
                 0,
                 1,
                 2,
                 3,
-                5
+                4
               ]
             },
             {
@@ -1819,13 +1848,11 @@
               "lifecycleStatus": "published",
               "authorityRank": 95,
               "matchedBy": [
-                "structured-reference"
+                "observed-structured-reference"
               ],
               "supportsFindings": [
                 0,
-                1,
-                2,
-                3
+                2
               ]
             },
             {
@@ -1839,7 +1866,7 @@
               "lifecycleStatus": "published",
               "authorityRank": 70,
               "matchedBy": [
-                "knowledge-base-entry"
+                "canonical-citation"
               ],
               "supportsFindings": []
             },
@@ -1854,9 +1881,14 @@
               "lifecycleStatus": "historical",
               "authorityRank": 55,
               "matchedBy": [
-                "knowledge-base-entry"
+                "knowledge-base-entry",
+                "observed-structured-reference"
               ],
-              "supportsFindings": []
+              "supportsFindings": [
+                1,
+                2,
+                3
+              ]
             },
             {
               "id": "hyphaeAtlas.source.b335630551682c19a781afeb",
@@ -1869,12 +1901,14 @@
               "lifecycleStatus": "published",
               "authorityRank": 50,
               "matchedBy": [
-                "knowledge-base-entry"
+                "canonical-citation"
               ],
-              "supportsFindings": []
+              "supportsFindings": [
+                3
+              ]
             }
           ],
-          "coverage": 1,
+          "coverage": 0,
           "findingSourceIds": [
             [
               "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
@@ -1882,22 +1916,21 @@
               "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
             ],
             [
+              "hyphaeAtlas.source.0bd23f152cf90d142716d8c3",
               "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
-              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
-              "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
-            ],
-            [
-              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
-              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
-              "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
-            ],
-            [
-              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
-              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
-              "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
-            ],
-            [
               "hyphaeAtlas.source.56faf2da914ba1aae0055935"
+            ],
+            [
+              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
+              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
+              "hyphaeAtlas.source.74ac9aaac7b567b361c5a934",
+              "hyphaeAtlas.source.0bd23f152cf90d142716d8c3"
+            ],
+            [
+              "hyphaeAtlas.source.0bd23f152cf90d142716d8c3",
+              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
+              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
+              "hyphaeAtlas.source.b335630551682c19a781afeb"
             ],
             [
               "hyphaeAtlas.source.c577c25e7eeccd1ca131741a"
@@ -1906,10 +1939,20 @@
           "findingCoverage": 1,
           "conflictSourceIds": [
             [
+              "hyphaeAtlas.source.06572a96a58dc510037d5efa",
+              "hyphaeAtlas.source.0bd23f152cf90d142716d8c3",
               "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
+              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
+              "hyphaeAtlas.source.74ac9aaac7b567b361c5a934"
+            ],
+            [
+              "hyphaeAtlas.source.0bd23f152cf90d142716d8c3",
+              "hyphaeAtlas.source.c577c25e7eeccd1ca131741a",
+              "hyphaeAtlas.source.56faf2da914ba1aae0055935",
               "hyphaeAtlas.source.d97e76f790cb66a316b3461a"
             ]
-          ]
+          ],
+          "conflictCoverage": 1
         },
         "trace": [
           {
@@ -1924,11 +1967,13 @@
             "kind": "tool",
             "name": "knowledge_base_read",
             "status": "complete",
-            "detail": "Backend retrieved 3 validated Knowledge Base entries.",
+            "detail": "Backend retrieved 5 validated Knowledge Base entries.",
             "entries": [
-              "performance/g7_certification",
-              "capabilities/claim_records",
-              "releases/verification"
+              "capabilities/claim_policy",
+              "capabilities/product_spec",
+              "performance",
+              "releases/changelog",
+              "releases/gate_status"
             ]
           },
           {
@@ -1936,7 +1981,7 @@
             "kind": "resolver",
             "name": "evidence_resolver",
             "status": "complete",
-            "detail": "Resolved upstream evidence for 6/6 findings across 7 source documents."
+            "detail": "Resolved upstream evidence for 5/5 findings across 7 source documents."
           },
           {
             "id": "validate",
@@ -1946,7 +1991,7 @@
             "detail": "Validated the JSON report schema and per-finding source resolution. This is not independent factual validation of the verdict."
           }
         ],
-        "capturedAt": "2026-09-19T21:42:54.958Z"
+        "capturedAt": "2026-09-20T05:09:19.005Z"
       }
     }
   }

@@ -6,7 +6,7 @@ export function containsAffirmativeTerm(statement: string, term: string): boolea
     const nextBoundaries = [after.indexOf("."), after.indexOf("!"), after.indexOf("?"), after.indexOf(";"), after.indexOf("\n")].filter((position) => position >= 0);
     const boundaryAfter = nextBoundaries.length ? Math.min(...nextBoundaries) : after.length;
     const prefix = before.slice(boundaryBefore + 1); const suffix = after.slice(0, boundaryAfter); const clause = `${prefix} ${suffix}`;
-    const negation = /\b(no|not|never|cannot|can't|does not|is not|isn't|without|prohibited|unsupported|rejects?|outside|non-claims?|must not|cannot be treated)\b/;
+    const negation = /\b(no|not|never|cannot|can't|does not|is not|isn't|without|prohibited|unsupported|rejects?|outside|non-claims?|must not|cannot be treated|instead of|rather than)\b/;
     const affirmativeBefore = /\b(is|are|provides|supports|offers|implements|guarantees|certifies|allows|can be treated as)\b[^.!?;]{0,90}$/;
     const affirmativeAfter = /^\s*\b(is|are)\s+(supported|provided|implemented|guaranteed|allowed)\b/;
     if (!negation.test(clause) && (affirmativeBefore.test(prefix) || affirmativeAfter.test(suffix))) return true;

@@ -114,3 +114,16 @@ Next.js emits CSP, HSTS, frame denial, no-sniff, no-referrer, Permissions Policy
 
 
 CSP currently permits inline framework scripts for Next.js static hydration but blocks inline script attributes and all object/frame ancestors. Atlas therefore describes it as a hardened compatibility CSP, not a nonce-based strict CSP.
+
+
+## Pinned corpus and adjudication graph
+
+The importer reads exactly 20 allowlisted files from manifest commit `fcccee58a96987867381a5a5fca7cb12dc3bb632` with `git show`; current checkout HEAD is intentionally irrelevant. The deployed corpus contains 20 `sourceDocument` records plus 14 structured records (34 total, eight types). `conflictAdjudication` stores the human-reviewed G7 decision and scoped applicability matrix.
+
+The evidence resolver follows nested Atlas references with cycle and depth bounds—such as claim → evidence → release → receipt—and terminates only at trusted `sourceDocument` records. Live Context results fail closed when either finding or surfaced-conflict citations do not resolve from text observed in `knowledge_base_read`.
+
+`GET /api/adjudications/g7` performs one fixed-ID, server-side Sanity query and emits a schema-validated allowlist DTO. It excludes source content, raw references, Sanity metadata, credentials, and arbitrary query input. Integrity mismatches fail closed with an unavailable response.
+
+## Replay-only Judge Mode
+
+`?judge=conflict|report|proof|evaluation&locale=en|es` loads the existing claim replay and exposes only a closed set of focus steps. Judge Mode skips the agent configuration request, has no live execution transition, guards the submit handler, disables proof-verification POSTs, and marks deterministic DOM state for recording. Its applicability matrix is fetched from the sanitized adjudication GET route. The standalone Playwright recorder also aborts and reports any browser POST.

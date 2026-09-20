@@ -1,9 +1,10 @@
 import "dotenv/config";
 
-import {mkdir, writeFile} from "node:fs/promises";
+import {readFile, rename, writeFile} from "node:fs/promises";
 import path from "node:path";
+import {z} from "zod";
 import {runAtlasAgent} from "../src/agent/sanity-context";
-import type {AtlasQuery} from "../src/agent/report-schema";
+import {agentResultSchema, atlasQuerySchema, type AtlasQuery} from "../src/agent/report-schema";
 
 const scenarios: Array<{key: string; label: string; query: AtlasQuery}> = [
   {key: "en.migration", label: "Native 2.x → 3.0 migration", query: {mode: "migration", locale: "en", question: "Can a Hyphae 2.x Native directory be opened with 3.0, when does it change, and is downgrade safety established?", currentVersion: "2.x Native", targetVersion: "3.0.0"}},
@@ -14,20 +15,33 @@ const scenarios: Array<{key: string; label: string; query: AtlasQuery}> = [
   {key: "es.claim", label: "Afirmación de latencia G7", query: {mode: "claim", locale: "es", question: "¿Podemos citar G7 como certificación de latencia portable o en hardware dedicado para Hyphae 3.0.0?", targetVersion: "3.0.0"}},
 ];
 
+const replaySchema = z.object({label: z.string().min(1), query: atlasQuerySchema, result: agentResultSchema}).strict();
+const replayDataSchema = z.object({version: z.literal(1), generatedAt: z.string().datetime(), replays: z.record(z.string(), replaySchema)}).strict();
 const sleep = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+function selectedScenarios() {
+  const argument = process.argv.find((item) => item.startsWith("--keys="))?.slice(7);
+  if (!argument) return scenarios;
+  const requested = new Set(argument.split(",").map((item) => item.trim()).filter(Boolean));
+  const selected = scenarios.filter((scenario) => requested.has(scenario.key));
+  const unknown = [...requested].filter((key) => !scenarios.some((scenario) => scenario.key === key));
+  if (unknown.length) throw new Error(`Unknown replay keys: ${unknown.join(", ")}`);
+  if (!selected.length) throw new Error("No replay keys selected");
+  return selected;
+}
 
 async function main() {
   const outputPath = path.resolve(process.cwd(), "src/data/replays.json");
-  await mkdir(path.dirname(outputPath), {recursive: true});
-  const output: Record<string, unknown> = {};
-  for (const scenario of scenarios) {
+  const selected = selectedScenarios();
+  const existing = replayDataSchema.parse(JSON.parse(await readFile(outputPath, "utf8")));
+  const output = {...existing.replays};
+  for (const scenario of selected) {
     process.stdout.write(`Capturing ${scenario.key}... `);
     let lastError: unknown;
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         const result = await runAtlasAgent(scenario.query);
-        output[scenario.key] = {label: scenario.label, query: scenario.query, result};
-        await writeFile(outputPath, JSON.stringify({version: 1, generatedAt: new Date().toISOString(), replays: output}, null, 2) + "\n");
+        output[scenario.key] = replaySchema.parse({label: scenario.label, query: scenario.query, result});
         console.log(`PASS (${result.report.verdict}, ${result.evidence.sources.length} upstream sources)`);
         lastError = undefined;
         break;
@@ -38,7 +52,12 @@ async function main() {
     }
     if (lastError) throw lastError;
   }
-  console.log(JSON.stringify({captured: Object.keys(output).length, outputPath}, null, 2));
+  const complete = replayDataSchema.parse({version: 1, generatedAt: new Date().toISOString(), replays: output});
+  if (Object.keys(complete.replays).length !== scenarios.length) throw new Error(`Replay set must contain all ${scenarios.length} scenarios`);
+  const temporary = `${outputPath}.${process.pid}.tmp`;
+  await writeFile(temporary, JSON.stringify(complete, null, 2) + "\n", {mode: 0o600});
+  await rename(temporary, outputPath);
+  console.log(JSON.stringify({captured: selected.map((scenario) => scenario.key), preserved: scenarios.map((scenario) => scenario.key).filter((key) => !selected.some((scenario) => scenario.key === key)), outputPath}, null, 2));
 }
 
 main().catch((error: unknown) => {

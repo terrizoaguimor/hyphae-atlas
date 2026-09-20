@@ -1,0 +1,130 @@
+{
+  "version": 3,
+  "status": "reviewed",
+  "scope": "full",
+  "publishable": true,
+  "generatedAt": "2026-09-20T04:55:13.243Z",
+  "corpusCommit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
+  "sourceDocumentCount": 20,
+  "caseCount": 12,
+  "selectedCaseCount": 12,
+  "scoring": "evaluation/scoring.ts@2",
+  "contextSnapshot": {
+    "version": 1,
+    "corpusCommit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
+    "corpusSnapshotDigest": "f52b0954719d1f0347c3cbac620cffeed5d598a913814ddab6cb37ea6a6e0fa0",
+    "sanityProjectId": "v2ulbd4b",
+    "sanityDataset": "production",
+    "atlasDocumentCount": 34,
+    "sourceDocumentCount": 20,
+    "knowledgeBaseId": "kbIPW9hgRO17",
+    "markerPath": "performance",
+    "markerContentDigest": "08b97ce1df8a9cf1d04c290dd78bbb40a0a94c01c9fd5248d2e04f0d092c93c6",
+    "reviewedAt": "2026-09-20T01:35:00.000Z",
+    "reviewer": "Mario Gutierrez"
+  },
+  "runContract": {
+    "model": "xai/grok-4.6",
+    "promptDigest": "00b25e5473dfbba87836e1fe25cd3afca2caabe5efc004b087351c38aa2ef122",
+    "outputSchemaDigest": "b7c74c983523a771a09996df8dd2d6627dd17ac32dee5a9bbe7266b70b50cc7a",
+    "parserDigest": "5707bbc82356d947952eeec7b74a9e73a523af25f728791524be8c659762f7c0",
+    "scorerDigest": "900aee54a8dde7842654f498e692530faa24a8e2497660a28afd07f1a4362e43",
+    "resolverDigest": "306576f7abc4c528ad847d731cdda701ca5f5b3be03b79e1398beed59123c713",
+    "retrievalDigest": "5a42c0bb8115dc10033a2000f78020ca3db99c6b87658fda4f923326c4d89215",
+    "providerDigest": "00afb5e17ee3af8c387f71e9aabbc3e135891424c12d56876cc15b3e1ff9bce0",
+    "casesDigest": "5a2c5a993bf8bd89aa0e4d97c454c8b5a2e01b7960b84c3350618564b09ddfc1",
+    "manifestDigest": "c1680fcf4e5e70ad245b017c12f52c4639b7a66c11d09542771e53cdd1ee03ad",
+    "harnessDigest": "8295a283b2791394ce09153dfe56f238d21078505ef3bc830af51e95cce48bc3",
+    "temperature": 0,
+    "maxTokens": 4000,
+    "answerCallsPerCase": 1,
+    "selectorCallsPerContextCase": 1,
+    "retryPolicy": "none"
+  },
+  "review": {
+    "reviewer": "Independent semantic audit / Hyphae Atlas maintainer",
+    "approvedAt": "2026-09-20T05:05:04.646Z",
+    "candidateDigest": "b51cbe1c3aeb763ad9583111a9952e4463802fc60d72ee8d053d34cf9882a0d0"
+  },
+  "note": {
+    "en": "Reviewed frozen 12-case evidence-compliance ablation. Strict passes: Structured Context 11/12, keyword 6/12, no-evidence control 0/12. Both retrieval arms matched 12/12 accepted verdicts; the pass-ineligible control matched 1/12. Resolution policies differ and are labeled.",
+    "es": "Ablación congelada de 12 casos revisada. Cumplimiento estricto: Context estructurado 11/12, léxico 6/12, control sin evidencia 0/12. Ambos brazos con recuperación acertaron 12/12 veredictos; el control no elegible acertó 1/12. Las políticas de resolución son distintas y están identificadas."
+  },
+  "arms": [
+    {
+      "id": "context",
+      "label": {
+        "en": "Structured Context",
+        "es": "Context estructurado"
+      },
+      "description": {
+        "en": "Sanity Context retrieval with structured provenance resolution over a receipt-bound Knowledge Base snapshot.",
+        "es": "Recuperación de Sanity Context con resolución de procedencia estructurada sobre un snapshot verificado."
+      },
+      "resolutionMode": "structured-provenance",
+      "status": "reviewed",
+      "metrics": {
+        "total": 12,
+        "passed": 11,
+        "passRate": 0.9166666666666666,
+        "verdictAccuracy": 1,
+        "sourceCoverage": 1,
+        "termCoverage": 0.9166666666666666,
+        "findingGrounding": 1,
+        "forbiddenAssertionCount": 0,
+        "contextToolCompliance": 1,
+        "averageDurationMs": 83441
+      }
+    },
+    {
+      "id": "keyword",
+      "label": {
+        "en": "Keyword retrieval",
+        "es": "Recuperación léxica"
+      },
+      "description": {
+        "en": "Deterministic lexical ranking with exact citation matching over the same 20 commit-pinned source documents.",
+        "es": "Ranking léxico determinista con citas exactas sobre los mismos 20 documentos fijados por commit."
+      },
+      "resolutionMode": "exact-selected-source",
+      "status": "reviewed",
+      "metrics": {
+        "total": 12,
+        "passed": 6,
+        "passRate": 0.5,
+        "verdictAccuracy": 1,
+        "sourceCoverage": 0.7083333333333334,
+        "termCoverage": 0.9166666666666666,
+        "findingGrounding": 1,
+        "forbiddenAssertionCount": 0,
+        "contextToolCompliance": null,
+        "averageDurationMs": 69065
+      }
+    },
+    {
+      "id": "none",
+      "label": {
+        "en": "No-evidence control",
+        "es": "Control sin evidencia"
+      },
+      "description": {
+        "en": "Pass-ineligible evidence-compliance control: zero supplied corpus and zero credited source or citation resolution.",
+        "es": "Control de cumplimiento no elegible para aprobar: sin corpus y sin crédito de fuentes o resolución de citas."
+      },
+      "resolutionMode": "none",
+      "status": "reviewed",
+      "metrics": {
+        "total": 12,
+        "passed": 0,
+        "passRate": 0,
+        "verdictAccuracy": 0.08333333333333333,
+        "sourceCoverage": 0,
+        "termCoverage": 0.08333333333333333,
+        "findingGrounding": 0,
+        "forbiddenAssertionCount": 0,
+        "contextToolCompliance": null,
+        "averageDurationMs": 16808
+      }
+    }
+  ]
+}

@@ -32,7 +32,12 @@
     "preview:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy:cloudflare": "node scripts/cloudflare-safe-deploy.mjs --deploy",
     "cf:typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
-    "evaluate": "tsx evaluation/run.ts"
+    "evaluate": "tsx evaluation/run.ts",
+    "evaluate:ablation": "tsx evaluation/ablation.ts",
+    "evaluate:ablation:verify": "tsx evaluation/verify-ablation.ts",
+    "evaluate:ablation:promote": "tsx evaluation/promote-ablation.ts",
+    "demo:policy:smoke": "node scripts/judge-request-policy-smoke.mjs",
+    "demo:record": "node scripts/record-judge.mjs"
   },
   "engines": {
     "node": ">=22.12"
@@ -55,6 +60,7 @@
     "@types/three": "0.186.0",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.5",
+    "playwright-core": "1.63.0",
     "sanity": "5.31.2",
     "styled-components": "6.5.3",
     "tsx": "4.23.13",

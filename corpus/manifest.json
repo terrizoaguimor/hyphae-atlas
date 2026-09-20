@@ -1,6 +1,7 @@
 {
-  "version": 1,
+  "version": 2,
   "repository": "https://github.com/Hyphae-Research-Foundation/hyphae",
+  "commit": "fcccee58a96987867381a5a5fca7cb12dc3bb632",
   "sources": [
     {"path":"README.md","kind":"product-overview","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["overview","release"],"authorityRank":50,"lifecycleStatus":"published","versionScope":["3.0.0","current"]},
     {"path":"CHANGELOG.md","kind":"changelog","format":"markdown","license":"CC-BY-SA-4.0","authorityDomains":["release","compatibility"],"authorityRank":70,"lifecycleStatus":"published","versionScope":["all"]},

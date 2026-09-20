@@ -1,98 +1,68 @@
 import "dotenv/config";
 
-import {createHash} from "node:crypto";
-import {execFileSync} from "node:child_process";
-import {mkdir, readFile, realpath, stat, writeFile} from "node:fs/promises";
+import {mkdir, readFile, writeFile} from "node:fs/promises";
 import path from "node:path";
 import {createClient, type SanityDocumentStub} from "@sanity/client";
+import {assertReviewedAdjudication, reviewedAdjudicationSchema, type ReviewedAdjudication} from "../src/lib/adjudication-integrity";
+import {atlasCorpusSnapshotDigest} from "./lib/atlas-corpus-integrity";
+import {deterministicSourceId, loadPinnedSources, readCorpusManifest, sha256, type CorpusManifest} from "./lib/pinned-corpus";
 
 const NAMESPACE = "hyphaeAtlas.";
 const DEFAULT_SOURCE_ROOT = path.resolve(process.cwd(), "../hyphae");
-const MAX_SOURCE_BYTES = 700_000;
-
-type Format = "markdown" | "json" | "yaml";
-type LifecycleStatus = "published" | "historical" | "unreleased" | "draft";
-type ManifestSource = {
-  path: string;
-  kind: string;
-  format: Format;
-  license: string;
-  authorityDomains: string[];
-  authorityRank: number;
-  lifecycleStatus: LifecycleStatus;
-  versionScope: string[];
-};
-type Manifest = {version: number; repository: string; sources: ManifestSource[]};
 type AtlasDocument = SanityDocumentStub & {_id: string; _type: string};
+type Adjudication = ReviewedAdjudication;
 
-function digest(value: string): string {
-  return createHash("sha256").update(value).digest("hex");
-}
-
-function sourceId(sourcePath: string): string {
-  return `${NAMESPACE}source.${digest(sourcePath).slice(0, 24)}`;
-}
+const digest = sha256;
 
 function ref(id: string, key?: string) {
   return {_type: "reference", _ref: id, ...(key ? {_key: key} : {})};
 }
 
-function firstTitle(content: string, fallback: string): string {
-  const heading = content.match(/^#\s+(.+)$/m)?.[1]?.trim();
-  return heading || fallback;
-}
-
 function requireEnvironment() {
   const required = ["SANITY_PROJECT_ID", "SANITY_DATASET", "SANITY_API_VERSION", "SANITY_WRITE_TOKEN"] as const;
   for (const key of required) if (!process.env[key]) throw new Error(`${key} is required`);
-  return {
-    projectId: process.env.SANITY_PROJECT_ID!,
-    dataset: process.env.SANITY_DATASET!,
-    apiVersion: process.env.SANITY_API_VERSION!,
-    token: process.env.SANITY_WRITE_TOKEN!,
-  };
+  return {projectId: process.env.SANITY_PROJECT_ID!, dataset: process.env.SANITY_DATASET!, apiVersion: process.env.SANITY_API_VERSION!, token: process.env.SANITY_WRITE_TOKEN!};
 }
 
-async function loadSources(root: string, manifest: Manifest, commit: string): Promise<AtlasDocument[]> {
-  const canonicalRoot = await realpath(root);
-  const documents: AtlasDocument[] = [];
-  for (const entry of manifest.sources) {
-    const candidate = await realpath(path.resolve(canonicalRoot, entry.path));
-    const relative = path.relative(canonicalRoot, candidate);
-    if (relative.startsWith("..") || path.isAbsolute(relative)) throw new Error(`Source escapes root: ${entry.path}`);
-    const metadata = await stat(candidate);
-    if (!metadata.isFile()) throw new Error(`Source is not a file: ${entry.path}`);
-    if (metadata.size > MAX_SOURCE_BYTES) throw new Error(`Source exceeds ${MAX_SOURCE_BYTES} bytes: ${entry.path}`);
-    const content = await readFile(candidate, "utf8");
-    documents.push({
-      _id: sourceId(entry.path),
-      _type: "sourceDocument",
-      title: firstTitle(content, path.basename(entry.path)),
-      sourcePath: entry.path,
-      sourceUrl: `${manifest.repository}/blob/${commit}/${entry.path}`,
-      sourceRef: commit,
-      sourceCommit: commit,
-      contentDigest: digest(content),
-      format: entry.format,
-      documentKind: entry.kind,
-      content,
-      license: entry.license,
-      authorityDomains: entry.authorityDomains,
-      authorityRank: entry.authorityRank,
-      lifecycleStatus: entry.lifecycleStatus,
-      versionScope: entry.versionScope,
-      lastVerifiedAt: new Date().toISOString(),
-    });
-  }
-  return documents;
+function loadSourceDocuments(root: string, manifest: CorpusManifest): AtlasDocument[] {
+  return loadPinnedSources(root, manifest).map((entry) => ({
+    _id: deterministicSourceId(entry.path),
+    _type: "sourceDocument",
+    title: entry.title,
+    sourcePath: entry.path,
+    sourceUrl: `${manifest.repository}/blob/${manifest.commit}/${entry.path}`,
+    sourceRef: manifest.commit,
+    sourceCommit: manifest.commit,
+    contentDigest: entry.contentDigest,
+    format: entry.format,
+    documentKind: entry.kind,
+    content: entry.content,
+    license: entry.license,
+    authorityDomains: entry.authorityDomains,
+    authorityRank: entry.authorityRank,
+    lifecycleStatus: entry.lifecycleStatus,
+    versionScope: entry.versionScope,
+    lastVerifiedAt: new Date().toISOString(),
+  }));
 }
 
-function structuredDocuments(sourceDocs: AtlasDocument[]): AtlasDocument[] {
-  const sourceByPath = new Map(sourceDocs.map((document) => [String(document.sourcePath), document._id]));
+function structuredDocuments(sourceDocs: AtlasDocument[], adjudication: Adjudication): AtlasDocument[] {
+  const sourceByPath = new Map(sourceDocs.map((document) => [String(document.sourcePath), document]));
   const source = (sourcePath: string, key?: string) => {
-    const id = sourceByPath.get(sourcePath);
-    if (!id) throw new Error(`Missing source reference: ${sourcePath}`);
-    return ref(id, key ?? digest(sourcePath).slice(0, 12));
+    const document = sourceByPath.get(sourcePath);
+    if (!document) throw new Error(`Missing source reference: ${sourcePath}`);
+    return ref(document._id, key ?? digest(sourcePath).slice(0, 12));
+  };
+  const checkedSource = (snapshot: {path: string; digest: string}, key?: string) => {
+    const document = sourceByPath.get(snapshot.path);
+    if (!document || document.contentDigest !== snapshot.digest) throw new Error(`Adjudication snapshot mismatch: ${snapshot.path}`);
+    return source(snapshot.path, key);
+  };
+  const adjudicationSnapshots = new Map([...adjudication.historicalSources, ...adjudication.authoritativeSources, ...adjudication.scopedSources].map((snapshot) => [snapshot.path, snapshot]));
+  const adjudicationRef = (sourcePath: string, key?: string) => {
+    const snapshot = adjudicationSnapshots.get(sourcePath);
+    if (!snapshot) throw new Error(`Applicability source is absent from adjudication snapshot: ${sourcePath}`);
+    return checkedSource(snapshot, key);
   };
   const releaseId = `${NAMESPACE}release.3-0-0`;
   const g7Id = `${NAMESPACE}evidence.g7-c60`;
@@ -231,6 +201,26 @@ function structuredDocuments(sourceDocs: AtlasDocument[]): AtlasDocument[] {
       sources: [source("docs/gates/native-gate-status.md", "gates"), source("docs/product/claims.md", "claims"), source("docs/product/native-capabilities.md", "capabilities")],
     },
     {
+      _id: adjudication.id,
+      _type: "conflictAdjudication",
+      title: adjudication.title,
+      domain: adjudication.domain,
+      question: adjudication.question,
+      status: adjudication.status,
+      humanReviewed: adjudication.humanReviewed,
+      reviewedAt: adjudication.reviewedAt,
+      reviewer: adjudication.reviewer,
+      policyVersion: adjudication.policyVersion,
+      decisionDigest: adjudication.decisionDigest,
+      resolution: adjudication.resolution,
+      versionScope: adjudication.versionScope,
+      environmentScope: adjudication.environmentScope,
+      historicalSources: adjudication.historicalSources.map((snapshot, index) => checkedSource(snapshot, `historical-${index}`)),
+      authoritativeSources: adjudication.authoritativeSources.map((snapshot, index) => checkedSource(snapshot, `authority-${index}`)),
+      scopedSources: adjudication.scopedSources.map((snapshot, index) => checkedSource(snapshot, `scoped-${index}`)),
+      applicability: adjudication.applicability.map((row) => ({_key: row.id, ...row, sources: row.sources.map((sourcePath, index) => adjudicationRef(sourcePath, `${row.id}-${index}`))})),
+    },
+    {
       _id: `${NAMESPACE}contract.native-mcp-v2`,
       _type: "publicContract",
       name: "Native MCP bounded tool contract",
@@ -260,12 +250,16 @@ async function main() {
   const dryRun = process.argv.includes("--dry-run");
   const environment = requireEnvironment();
   const root = path.resolve(process.env.HYPHAE_SOURCE_PATH ?? DEFAULT_SOURCE_ROOT);
-  const manifestPath = path.resolve(process.cwd(), "corpus/manifest.json");
-  const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as Manifest;
-  if (manifest.version !== 1 || !Array.isArray(manifest.sources) || manifest.sources.length === 0) throw new Error("Unsupported or empty corpus manifest");
-  const commit = execFileSync("git", ["rev-parse", "HEAD"], {cwd: root, encoding: "utf8"}).trim();
-  const sourceDocs = await loadSources(root, manifest, commit);
-  const documents = [...sourceDocs, ...structuredDocuments(sourceDocs)];
+  const [manifest, adjudication] = await Promise.all([
+    readCorpusManifest(),
+    readFile(path.resolve(process.cwd(), "corpus/adjudications/g7-closure-portability.json"), "utf8").then((value) => assertReviewedAdjudication(reviewedAdjudicationSchema.parse(JSON.parse(value)))),
+  ]);
+  const sourceDocs = loadSourceDocuments(root, manifest);
+  const documents = [...sourceDocs, ...structuredDocuments(sourceDocs, adjudication)];
+  const corpusSnapshotDigest = atlasCorpusSnapshotDigest(documents);
+  const adjudicationDocument = documents.find((document) => document._id === adjudication.id);
+  if (!adjudicationDocument) throw new Error("G7 adjudication document was not constructed");
+  Object.assign(adjudicationDocument, {corpusCommit: manifest.commit, corpusDocumentCount: documents.length, corpusSnapshotDigest});
   const duplicateIds = documents.map((doc) => doc._id).filter((id, index, ids) => ids.indexOf(id) !== index);
   if (duplicateIds.length) throw new Error(`Duplicate document IDs: ${duplicateIds.join(", ")}`);
   if (documents.some((doc) => !doc._id.startsWith(NAMESPACE))) throw new Error("Refusing to import a document outside the Hyphae Atlas namespace");
@@ -273,7 +267,8 @@ async function main() {
   const summary = {
     dryRun,
     sourceRoot: root,
-    sourceCommit: commit,
+    sourceCommit: manifest.commit,
+    corpusSnapshotDigest,
     sourceCount: sourceDocs.length,
     structuredCount: documents.length - sourceDocs.length,
     totalDocuments: documents.length,

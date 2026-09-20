@@ -2,19 +2,11 @@ import "dotenv/config";
 
 import {mkdir, readFile, writeFile} from "node:fs/promises";
 import path from "node:path";
-import {z} from "zod";
 import {runAtlasAgent} from "../src/agent/sanity-context";
-import {atlasQuerySchema} from "../src/agent/report-schema";
 import {ModelProviderError} from "../src/agent/providers";
-import {findForbiddenAssertions} from "./polarity";
+import {evaluationCasesSchema, evaluationQuery, scoreAgentResult, type EvaluationCase, type EvaluationScore} from "./scoring";
 
-const caseSchema = atlasQuerySchema.extend({
-  id: z.string().min(1), expectedVerdicts: z.array(z.enum(["supported", "unsupported", "conditional", "unknown", "unproven"])).min(1),
-  requiredSourcePaths: z.array(z.string()).min(1), requiredTerms: z.array(z.string()), forbiddenTerms: z.array(z.string()),
-});
-const casesSchema = z.array(caseSchema).min(1);
-type EvaluationCase = z.infer<typeof caseSchema>;
-type CaseResult = {id: string; passed: boolean; attempts: number; verdict: string; expectedVerdicts: string[]; missingSources: string[]; sourceCoverage: number; missingTerms: string[]; termCoverage: number; forbiddenAssertions: string[]; findingGroundingCoverage: number; retrievalMode: string; toolsUsed: string[]; contextToolPass: boolean; durationMs: number; error?: string};
+type CaseResult = EvaluationScore & {id: string; attempts: number; durationMs: number; error?: string};
 const sleep = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 function selectedCases(cases: EvaluationCase[]): EvaluationCase[] {
@@ -23,28 +15,14 @@ function selectedCases(cases: EvaluationCase[]): EvaluationCase[] {
   if (!process.argv.includes("--smoke")) return cases;
   const selected = new Map<string, EvaluationCase>(); for (const item of cases) if (!selected.has(item.mode)) selected.set(item.mode, item); return [...selected.values()];
 }
-
-function transient(error: unknown): boolean {
-  return error instanceof ModelProviderError && error.status === 429 || error instanceof DOMException && error.name === "TimeoutError" || error instanceof Error && /timed out|rate limit/i.test(error.message);
-}
+function transient(error: unknown): boolean {return error instanceof ModelProviderError && error.status === 429 || error instanceof DOMException && error.name === "TimeoutError" || error instanceof Error && /timed out|rate limit/i.test(error.message);}
 
 async function evaluate(item: EvaluationCase): Promise<CaseResult> {
   const started = Date.now(); let lastError: unknown;
   for (let attempts = 1; attempts <= 2; attempts++) {
     try {
-      const result = await runAtlasAgent(atlasQuerySchema.parse(item));
-      const corpus = JSON.stringify(result.report).toLowerCase();
-      const resolvedPaths = new Set(result.evidence.sources.map((source) => source.path));
-      const missingSources = item.requiredSourcePaths.filter((requiredPath) => !resolvedPaths.has(requiredPath));
-      const missingTerms = item.requiredTerms.filter((termGroup) => !termGroup.split("|").some((term) => corpus.includes(term.trim().toLowerCase())));
-      const assertiveFields = [result.report.summary, result.report.applicability.version ?? "", result.report.applicability.surface ?? "", result.report.applicability.protocolMinor ?? "", ...result.report.findings.filter((finding) => finding.status === "confirmed" || finding.status === "conditional").flatMap((finding) => [finding.statement, ...finding.qualifiers]), ...result.report.conflicts.flatMap((conflict) => [conflict.description, conflict.resolution]), ...result.report.recommendedActions, ...result.report.limitations];
-      const forbiddenAssertions = findForbiddenAssertions(assertiveFields, item.forbiddenTerms);
-      const sourceCoverage = (item.requiredSourcePaths.length - missingSources.length) / item.requiredSourcePaths.length;
-      const termCoverage = item.requiredTerms.length ? (item.requiredTerms.length - missingTerms.length) / item.requiredTerms.length : 1;
-      const verdictPass = item.expectedVerdicts.includes(result.report.verdict);
-      const contextToolPass = result.retrieval.mode !== "sanity-context-mcp" || ["initial_context", "knowledge_base_read"].every((tool) => result.retrieval.toolsUsed.includes(tool));
-      const passed = verdictPass && sourceCoverage === 1 && termCoverage === 1 && forbiddenAssertions.length === 0 && result.evidence.findingCoverage === 1 && contextToolPass;
-      return {id: item.id, passed, attempts, verdict: result.report.verdict, expectedVerdicts: item.expectedVerdicts, missingSources, sourceCoverage, missingTerms, termCoverage, forbiddenAssertions, findingGroundingCoverage: result.evidence.findingCoverage, retrievalMode: result.retrieval.mode, toolsUsed: result.retrieval.toolsUsed, contextToolPass, durationMs: Date.now() - started};
+      const result = await runAtlasAgent(evaluationQuery(item));
+      return {id: item.id, attempts, durationMs: Date.now() - started, ...scoreAgentResult(item, result)};
     } catch (error: unknown) {
       lastError = error;
       if (attempts === 1 && transient(error)) {process.stdout.write("transient retry... "); await sleep(10_000); continue;}
@@ -55,7 +33,7 @@ async function evaluate(item: EvaluationCase): Promise<CaseResult> {
 }
 
 async function main() {
-  const allCases = casesSchema.parse(JSON.parse(await readFile(path.resolve(process.cwd(), "evaluation/cases.json"), "utf8"))); const cases = selectedCases(allCases); const results: CaseResult[] = [];
+  const allCases = evaluationCasesSchema.parse(JSON.parse(await readFile(path.resolve(process.cwd(), "evaluation/cases.json"), "utf8"))); const cases = selectedCases(allCases); const results: CaseResult[] = [];
   for (const item of cases) {process.stdout.write(`Evaluating ${item.id}... `); const result = await evaluate(item); results.push(result); console.log(result.passed ? `PASS${result.attempts > 1 ? ` (${result.attempts} attempts)` : ""}` : "FAIL");}
   const scope = process.argv.includes("--smoke") ? "smoke" : process.argv.some((argument) => argument.startsWith("--case=")) ? "single" : "full";
   const summary = {

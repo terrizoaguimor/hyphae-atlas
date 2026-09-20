@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "decisionDigest": "3318bebb0a9ac30719de5a3725656e227572d9dc7a91d2248f01d6813fe9304a",
+  "id": "hyphaeAtlas.adjudication.g7-closure-portability",
+  "title": "G7 closure and portability adjudication",
+  "domain": "performance-gate-claims",
+  "question": "What does G7 establish, and may it be cited as portable or dedicated-hardware latency certification for Hyphae 3.0.0?",
+  "status": "resolved",
+  "humanReviewed": true,
+  "reviewedAt": "2026-09-19",
+  "reviewer": "Hyphae Atlas corpus review",
+  "policyVersion": "1",
+  "resolution": "G7 is closed for the recorded DigitalOcean C-60 virtualized operational-scale run at ff188af. That closure is not portable or dedicated-hardware latency certification for Hyphae 3.0.0. The 3.0.0 publication receipt establishes scoped G8 release evidence and does not establish a new dedicated-hardware G7 run.",
+  "versionScope": ["3.0.0", "G7", "G8"],
+  "environmentScope": ["DigitalOcean C-60 virtual machine"],
+  "historicalSources": [
+    {"path": "docs/performance/microsecond-first.md", "digest": "91de60f5df97b251309fd4a1a75b244de3767064925829afb6d06e91916db1a7"}
+  ],
+  "authoritativeSources": [
+    {"path": "docs/gates/native-gate-status.md", "digest": "c51fbbfedaea0dc6692b88ed41e84fc7d5439125c822a778844d70948d945d0f"},
+    {"path": "docs/product/claims.md", "digest": "69946a37a90598a09017c1d218bd9622721f5bb05e48c7706a755d1dd5a6ac83"}
+  ],
+  "scopedSources": [
+    {"path": "docs/release/receipts/3.0.0.md", "digest": "c7cddd6bde6332faba92ee0a6388172a0d1d19afe0a94db94564a698cf1251a2"}
+  ],
+  "applicability": [
+    {"id": "g7-closure", "claim": "G7 is closed for the recorded virtualized operational-scale run.", "decision": "supported", "scope": "DigitalOcean C-60 at ff188af", "rationale": "The current gate authority records closure for that environment.", "sources": ["docs/gates/native-gate-status.md"]},
+    {"id": "portable-latency", "claim": "G7 proves portable latency certification.", "decision": "unsupported", "scope": "All hardware and environments", "rationale": "The gate evidence explicitly remains environment-scoped and does not certify portability.", "sources": ["docs/gates/native-gate-status.md", "docs/product/claims.md"]},
+    {"id": "dedicated-hardware", "claim": "G7 proves dedicated-hardware latency certification for 3.0.0.", "decision": "unsupported", "scope": "Hyphae 3.0.0", "rationale": "The recorded G7 run is virtualized; the 3.0.0 receipt is G8 release evidence, not a dedicated-hardware G7 rerun.", "sources": ["docs/gates/native-gate-status.md", "docs/release/receipts/3.0.0.md", "docs/product/claims.md"]},
+    {"id": "g8-release", "claim": "The 3.0.0 receipt establishes exact-SHA G8 release evidence.", "decision": "supported", "scope": "Hyphae 3.0.0 release artifacts", "rationale": "The publication receipt governs release state within its declared scope.", "sources": ["docs/release/receipts/3.0.0.md"]}
+  ]
+}

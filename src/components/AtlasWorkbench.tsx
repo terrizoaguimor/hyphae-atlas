@@ -12,7 +12,9 @@ import {ReportView} from "./ReportView";
 import {Tooltip} from "./Tooltip";
 import {ConflictTimeline} from "./ConflictTimeline";
 import {EvaluationLab} from "./EvaluationLab";
+import {JudgeModeBar} from "./JudgeModeBar";
 import {TurnstileChallenge} from "./TurnstileChallenge";
+import {parseJudgeStep, type JudgeStep} from "@/data/judge-mode";
 
 type Configuration = {status: string; modelConfigured: boolean; modelProvider: string; model: string | null; sanityDatasetConfigured: boolean; contextConfigured: boolean; retrievalMode: string; turnstileRequired: boolean; turnstileConfigured: boolean};
 type ExecutionMode = "replay" | "live";
@@ -43,24 +45,37 @@ export function AtlasWorkbench() {
   const [turnstileReset, setTurnstileReset] = useState(0);
   const [resultOrigin, setResultOrigin] = useState<ExecutionMode>("replay");
   const [configuration, setConfiguration] = useState<Configuration | null>(null);
+  const [judgeStep, setJudgeStep] = useState<JudgeStep | null>(null);
 
+  const judgeMode = judgeStep !== null;
   const copy = uiCopy[locale];
   const modes = modeCopy[locale];
   const active = modes[mode];
   const turnstileEnabled = process.env.NEXT_PUBLIC_TURNSTILE_ENABLED === "true";
-  const liveAvailable = configuration?.contextConfigured === true && configuration.modelConfigured && (!configuration.turnstileRequired || configuration.turnstileConfigured);
+  const liveAvailable = !judgeMode && configuration?.contextConfigured === true && configuration.modelConfigured && (!configuration.turnstileRequired || configuration.turnstileConfigured);
   const contextLabel = useMemo(() => configuration?.contextConfigured ? copy.live : copy.preview, [configuration, copy.live, copy.preview]);
 
   useEffect(() => {
+    const requestedJudgeStep = parseJudgeStep(window.location.search);
+    const requestedLocale = new URLSearchParams(window.location.search).get("locale");
     const saved = window.localStorage.getItem("atlas-locale");
-    const preferred: Locale = saved === "es" || saved === "en" ? saved : navigator.language.toLowerCase().startsWith("es") ? "es" : "en";
+    const preferred: Locale = requestedLocale === "es" || requestedLocale === "en" ? requestedLocale : saved === "es" || saved === "en" ? saved : navigator.language.toLowerCase().startsWith("es") ? "es" : "en";
     document.documentElement.lang = preferred;
-    const localeFrame = window.requestAnimationFrame(() => setLocale(preferred));
-    fetch("/api/agent", {cache: "no-store"}).then((response) => response.json()).then(setConfiguration).catch(() => setConfiguration(null));
-    const context = gsap.context(() => {
-      if (motionAllowed()) gsap.fromTo("[data-reveal]", {y: 18}, {y: 0, duration: .7, stagger: .07, ease: "power3.out", clearProps: "transform"});
-    }, rootRef);
-    return () => {window.cancelAnimationFrame(localeFrame); context.revert();};
+    const localeFrame = window.requestAnimationFrame(() => {if (requestedJudgeStep) {setJudgeStep(requestedJudgeStep); loadReplay(preferred);} else setLocale(preferred);});
+    if (!requestedJudgeStep) fetch("/api/agent", {cache: "no-store"}).then((response) => response.json()).then(setConfiguration).catch(() => setConfiguration(null));
+    const context = gsap.context(() => {if (motionAllowed()) gsap.fromTo("[data-reveal]", {y: 18}, {y: 0, duration: .7, stagger: .07, ease: "power3.out", clearProps: "transform"});}, rootRef);
+    return () => {if (localeFrame) window.cancelAnimationFrame(localeFrame); context.revert();};
+  }, []);
+
+  useEffect(() => {
+    function syncJudgeHistory() {
+      const nextStep = parseJudgeStep(window.location.search); const requestedLocale = new URLSearchParams(window.location.search).get("locale"); const savedLocale = window.localStorage.getItem("atlas-locale"); const nextLocale: Locale = requestedLocale === "es" || requestedLocale === "en" ? requestedLocale : savedLocale === "es" ? "es" : "en";
+      document.documentElement.lang = nextLocale;
+      if (nextStep) {setJudgeStep(nextStep); loadReplay(nextLocale); return;}
+      setJudgeStep(null); setLocale(nextLocale); setMode("migration"); setQuestion(modeCopy[nextLocale].migration.example); setCurrentVersion("2.x Native"); setTargetVersion("3.0.0"); setSurface(""); setProtocolMinor(""); setExecutionMode("replay"); setResult(null); setError("");
+      fetch("/api/agent", {cache: "no-store"}).then((response) => response.json()).then(setConfiguration).catch(() => setConfiguration(null));
+    }
+    window.addEventListener("popstate", syncJudgeHistory); return () => window.removeEventListener("popstate", syncJudgeHistory);
   }, []);
 
   useEffect(() => {
@@ -69,10 +84,17 @@ export function AtlasWorkbench() {
   }, [mode, locale]);
 
   useEffect(() => {
-    if (!result || !reportRef.current) return;
+    if (!result || !reportRef.current || judgeMode) return;
     if (motionAllowed()) gsap.fromTo(reportRef.current, {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: .7, ease: "power3.out"});
     reportRef.current.scrollIntoView({behavior: motionAllowed() ? "smooth" : "auto", block: "start"});
-  }, [result]);
+  }, [result, judgeMode]);
+
+  useEffect(() => {
+    if (!judgeStep || !result) return;
+    const anchor = {conflict: "conflict-story", report: "report", proof: "proof", evaluation: "evaluation"}[judgeStep];
+    const frame = window.requestAnimationFrame(() => {const target = document.getElementById(anchor); if (!target) return; target.scrollIntoView({behavior: "auto", block: "start"}); target.focus({preventScroll: true});});
+    return () => window.cancelAnimationFrame(frame);
+  }, [judgeStep, result]);
 
   useEffect(() => () => requestRef.current?.abort(), []);
 
@@ -85,13 +107,24 @@ export function AtlasWorkbench() {
 
   function resetTurnstile() {setTurnstileToken(""); setTurnstileReset((value) => value + 1);}
 
+  function loadReplay(nextLocale: Locale) {
+    const replay = getReplay(nextLocale, "claim"); const query = replay.query;
+    setLocale(nextLocale); setMode("claim"); setQuestion(query.question); setCurrentVersion(query.currentVersion ?? ""); setTargetVersion(query.targetVersion ?? ""); setSurface(query.surface ?? ""); setProtocolMinor(query.protocolMinor === undefined ? "" : String(query.protocolMinor)); setExecutionMode("replay"); setResultOrigin("replay"); setResult(replay.result); setError(""); setLoading(false);
+  }
+
+  function navigateJudge(next: JudgeStep) {
+    loadReplay(locale); setJudgeStep(next);
+    const url = new URL(window.location.href); url.searchParams.set("judge", next); url.searchParams.set("locale", locale); window.history.pushState({}, "", url);
+  }
+
   function changeLocale(next: Locale) {
-    cancelPendingRequest(); resetTurnstile();
-    setLocale(next); window.localStorage.setItem("atlas-locale", next); document.documentElement.lang = next;
-    setQuestion(modeCopy[next][mode].example); setExecutionMode("replay"); setResult(null); setError("");
+    cancelPendingRequest(); resetTurnstile(); window.localStorage.setItem("atlas-locale", next); document.documentElement.lang = next;
+    if (judgeMode) {const url = new URL(window.location.href); url.searchParams.set("locale", next); window.history.replaceState({}, "", url); loadReplay(next); return;}
+    setLocale(next); setQuestion(modeCopy[next][mode].example); setExecutionMode("replay"); setResult(null); setError("");
   }
 
   function selectMode(nextMode: QueryMode, scroll = false) {
+    if (judgeMode) {navigateJudge("report"); return;}
     cancelPendingRequest(); resetTurnstile();
     setMode(nextMode); setQuestion(modes[nextMode].example); setExecutionMode("replay"); setResult(null); setError("");
     if (nextMode === "migration") {setCurrentVersion("2.x Native"); setTargetVersion("3.0.0"); setSurface(""); setProtocolMinor("");}
@@ -102,6 +135,10 @@ export function AtlasWorkbench() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); cancelPendingRequest(); setError(""); setResult(null);
+    if (judgeMode) {
+      try {loadReplay(locale);} catch (caught) {setError(caught instanceof Error ? caught.message : copy.errorUnexpected);}
+      return;
+    }
     if (executionMode === "replay") {
       try {setResult(getReplay(locale, mode).result); setResultOrigin("replay");} catch (caught) {setError(caught instanceof Error ? caught.message : copy.errorUnexpected);}
       return;
@@ -128,17 +165,18 @@ export function AtlasWorkbench() {
   }
 
   return (
-    <div ref={rootRef}>
+    <div ref={rootRef} data-judge-mode={judgeMode ? "true" : "false"} data-judge-step={judgeStep ?? "none"} data-locale={locale} data-query-mode={mode} data-result-ready={result ? "true" : "false"}>
       <header className="site-header">
         <a className="brand" href="#top" aria-label={copy.home}><span className="brand-mark" aria-hidden="true">H</span><span>Hyphae <strong>Atlas</strong></span></a>
         <nav className="header-nav" aria-label={locale === "es" ? "Navegación principal" : "Primary navigation"}><a href="#how">{copy.navHow}</a><a href="#try-atlas">{copy.navTry}</a></nav>
         <div className="header-actions">
-          <div className={`connection-status ${configuration?.contextConfigured ? "is-live" : ""}`} title={contextLabel}><span/><strong>{configuration?.contextConfigured ? "LIVE" : "PREVIEW"}</strong></div>
+          <div className={`connection-status ${configuration?.contextConfigured && !judgeMode ? "is-live" : ""}`} title={judgeMode ? "Replay only" : contextLabel}><span/><strong>{judgeMode ? "REPLAY" : configuration?.contextConfigured ? "LIVE" : "PREVIEW"}</strong></div>
           <div className="language-switch" role="group" aria-label={copy.language}><button type="button" className={locale === "en" ? "active" : ""} onClick={() => changeLocale("en")} aria-pressed={locale === "en"}>EN</button><button type="button" className={locale === "es" ? "active" : ""} onClick={() => changeLocale("es")} aria-pressed={locale === "es"}>ES</button></div>
         </div>
       </header>
 
       <main id="top">
+        {judgeStep ? <JudgeModeBar locale={locale} step={judgeStep} onStep={navigateJudge}/> : null}
         <section className="hero">
           <div className="hero-copy" data-reveal>
             <p className="eyebrow">{copy.heroEyebrow}</p>
@@ -174,10 +212,10 @@ export function AtlasWorkbench() {
             <div className="mode-rail" role="group" aria-label={locale === "es" ? "Modo de análisis" : "Analysis mode"}>{(Object.keys(modes) as QueryMode[]).map((item) => <button type="button" aria-pressed={mode === item} className={mode === item ? "active" : ""} onClick={() => selectMode(item)} key={item}><span>{modes[item].eyebrow}</span><strong>{modes[item].label}</strong><small>{modes[item].description}</small></button>)}</div>
             <div ref={queryRef}>
               <form className="query-panel" onSubmit={submit}>
-                <div className="panel-heading"><div><p className="eyebrow">{active.eyebrow}</p><h3>{active.label}</h3><p>{active.description}</p></div><button type="button" className="text-button" onClick={() => setQuestion(active.example)}>{copy.loadExample}</button></div>
-                <div className="execution-switch" role="group" aria-label={locale === "es" ? "Modo de ejecución" : "Execution mode"}>
-                  <button type="button" aria-pressed={executionMode === "replay"} className={executionMode === "replay" ? "active" : ""} onClick={() => {cancelPendingRequest(); resetTurnstile(); setExecutionMode("replay"); setQuestion(active.example); setResult(null);}}><span>↻</span><div><strong>{executionCopy[locale].replay}</strong><small>{executionCopy[locale].replayBody}</small></div></button>
-                  <button type="button" aria-pressed={executionMode === "live"} className={executionMode === "live" ? "active" : ""} disabled={!liveAvailable} onClick={() => {cancelPendingRequest(); resetTurnstile(); setExecutionMode("live"); setResult(null);}}><span>✦</span><div><strong>{executionCopy[locale].live}</strong><small>{executionCopy[locale].liveBody}</small></div></button>
+                <div className="panel-heading"><div><p className="eyebrow">{active.eyebrow}</p><h3>{active.label}</h3><p>{active.description}</p></div><button type="button" className="text-button" onClick={() => judgeMode ? loadReplay(locale) : setQuestion(active.example)}>{copy.loadExample}</button></div>
+                <div className={`execution-switch ${judgeMode ? "judge-locked" : ""}`} role="group" aria-label={locale === "es" ? "Modo de ejecución" : "Execution mode"}>
+                  <button type="button" aria-pressed={executionMode === "replay"} className={executionMode === "replay" ? "active" : ""} onClick={() => {cancelPendingRequest(); resetTurnstile(); if (judgeMode) loadReplay(locale); else {setExecutionMode("replay"); setQuestion(active.example); setResult(null);}}}><span>↻</span><div><strong>{executionCopy[locale].replay}</strong><small>{executionCopy[locale].replayBody}</small></div></button>
+                  {!judgeMode ? <button type="button" aria-pressed={executionMode === "live"} className={executionMode === "live" ? "active" : ""} disabled={!liveAvailable} onClick={() => {cancelPendingRequest(); resetTurnstile(); setExecutionMode("live"); setResult(null);}}><span>✦</span><div><strong>{executionCopy[locale].live}</strong><small>{executionCopy[locale].liveBody}</small></div></button> : null}
                 </div>
                 {executionMode === "live" && turnstileEnabled ? <TurnstileChallenge key={turnstileReset} locale={locale} resetKey={turnstileReset} onToken={setTurnstileToken}/> : null}
                 <label className="question-field"><span className="label-line">{copy.question}<small>{copy.questionHelp}</small></span><textarea value={question} onChange={(event) => setQuestion(event.target.value)} minLength={10} maxLength={2000} rows={5} required disabled={loading} readOnly={executionMode === "replay"}/><span className="character-count">{question.length}/2000</span></label>
@@ -193,7 +231,10 @@ export function AtlasWorkbench() {
           </div>
         </section>
 
-        <div ref={reportRef} aria-live="polite">{result ? <>{resultOrigin === "replay" ? <div className="replay-banner"><span>↻</span><div><strong>{executionCopy[locale].banner}</strong><p>{executionCopy[locale].bannerBody} · {new Date(result.capturedAt).toLocaleString(locale === "es" ? "es" : "en")}</p></div><button type="button" onClick={() => {setExecutionMode("live"); document.getElementById("try-atlas")?.scrollIntoView({behavior: motionAllowed() ? "smooth" : "auto"});}}>{executionCopy[locale].live} →</button></div> : null}<ReportView result={result} locale={locale}/></> : null}</div>
+        <div ref={reportRef} aria-live="polite">{result ? <>
+          {resultOrigin === "replay" ? <div className="replay-banner"><span>↻</span><div><strong>{executionCopy[locale].banner}</strong><p>{executionCopy[locale].bannerBody} · {new Date(result.capturedAt).toLocaleString(locale === "es" ? "es" : "en")}</p></div>{!judgeMode ? <button type="button" onClick={() => {setExecutionMode("live"); document.getElementById("try-atlas")?.scrollIntoView({behavior: motionAllowed() ? "smooth" : "auto"});}}>{executionCopy[locale].live} →</button> : null}</div> : null}
+          <ReportView result={result} locale={locale} judgeMode={judgeMode}/>
+        </> : null}</div>
 
         <EvaluationLab locale={locale}/>
 

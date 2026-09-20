@@ -24,6 +24,10 @@ Hyphae and its source documentation existed before this challenge. For the chall
 
 **Live application:** [atlas.terrizoaguimor.dev](https://atlas.terrizoaguimor.dev)
 
+**Judge Mode:** [open the replay-only G7 walkthrough](https://atlas.terrizoaguimor.dev/?judge=conflict&locale=en)
+
+**27-second recording:** [download the captioned Judge Mode walkthrough](https://atlas.terrizoaguimor.dev/demo/hyphae-atlas-judge.webm)
+
 A useful first route through the demo is:
 
 1. Open the Native 2.x to 3.0 migration replay and inspect why the answer separates supported import behavior from guarantees the sources do not make.
@@ -40,7 +44,7 @@ Fresh live queries use the hosted xAI/Grok 4.6 synthesis provider and require a 
 
 The repository includes:
 
-- all seven Sanity schema types;
+- all eight Sanity schema types;
 - the closed-world source manifest and idempotent importer;
 - the backend-owned Sanity Context client and provider adapters;
 - strict report-schema and citation-grounding validation;
@@ -57,7 +61,7 @@ Sanity is not a passive CMS in this project. It is the structured evidence layer
 
 ### A content model for authority, applicability, and provenance
 
-I modeled seven related document types:
+I modeled eight related document types:
 
 1. **Source documents** store repository path, source commit, SHA-256 digest, license, lifecycle, authority domains, and version scope.
 2. **Hyphae releases** identify concrete release boundaries.
@@ -66,8 +70,9 @@ I modeled seven related document types:
 5. **Product claims** preserve canonical claims and non-claims.
 6. **Evidence artifacts** represent gates, fixtures, and release evidence.
 7. **Public contracts** capture API and MCP surfaces.
+8. **Conflict adjudications** persist reviewed human decisions, exact applicability, and the historical/current/scoped sources they reconcile.
 
-The imported corpus contains 20 curated public source documents and 13 additional structured records, for 33 namespaced Atlas documents in the `production` dataset. The sources cover claim language, the Native capability matrix, SQL and MVCC contracts, directory migration semantics, the Native MCP contract, access control, compatibility fixtures, current gate status, and the exact Hyphae 3.0.0 publication receipt.
+The imported corpus contains 20 curated public source documents and 14 additional structured records, for 34 namespaced Atlas documents in the `production` dataset. The sources cover claim language, the Native capability matrix, SQL and MVCC contracts, directory migration semantics, the Native MCP contract, access control, compatibility fixtures, current gate status, and the exact Hyphae 3.0.0 publication receipt.
 
 The importer uses deterministic `hyphaeAtlas.*` IDs, commit-pinned source URLs, SHA-256 content digests, and idempotent upserts. It also records the non-Atlas document count before and after import so that a corpus refresh cannot silently replace unrelated content. A repeated import produced the same IDs and totals.
 
@@ -77,7 +82,7 @@ I built the **Hyphae Atlas** Knowledge Base with this purpose:
 
 > Help Hyphae users, maintainers, and auditors determine whether a migration, capability, or technical claim is valid for an exact release, protocol surface, and evidence scope.
 
-The build generated 21 Knowledge Base entries from the 33 Atlas documents. Atlas uses both required Knowledge Base-mode tools:
+The build generated 21 Knowledge Base entries from the 34 Atlas documents. Atlas uses both required Knowledge Base-mode tools:
 
 1. `initial_context` reads the generated outline.
 2. `knowledge_base_read` retrieves the smallest sufficient set of relevant entries, batching related evidence where possible.
@@ -163,6 +168,8 @@ The final full run used the hosted xAI configuration and completed all cases in 
 
 The checked-in `evaluation/baseline-summary.json` records the run timestamp, Knowledge Base ID and entry count, exact criteria, and average duration. Earlier development runs exposed timeout, polarity, field-size, and grounding defects; those failures drove the backend-owned MCP and resolver design rather than being hidden behind retries.
 
+I also ran a frozen, reviewed three-arm evidence-compliance ablation over the same 12 cases with one neutral synthesis prompt and no retries. Structured Context passed 11/12 strict checks, deterministic exact lexical retrieval passed 6/12, and the pass-ineligible no-evidence control passed 0/12. Both retrieval arms matched all 12 accepted verdicts; the difference came from required authority-source recall and one exact phrase gate. The UI labels the different resolution policies instead of presenting this as a generic accuracy comparison.
+
 ## Reliability, Security, and Abuse Controls
 
 The public application runs on Cloudflare Workers through OpenNext at the custom Atlas domain. The deployment is built from a committed clean clone that does not contain `.env`. Before upload, the deployment script scans 1,221 generated OpenNext files against six local secret values; the deployed build had zero matches. Runtime credentials are Cloudflare encrypted secrets, with separate least-privilege roles for reading, importing, and Studio deployment.
@@ -188,7 +195,7 @@ I verified the deployed negative paths as well as the happy path: a missing Turn
 - **Knowledge Base:** `Hyphae Atlas`
 - **Knowledge Base public ID:** `kbIPW9hgRO17`
 - **Sanity Studio:** [hyphae-atlas-v2ulbd4b.sanity.studio](https://hyphae-atlas-v2ulbd4b.sanity.studio/)
-- **Atlas documents:** 33 across seven schema types
+- **Atlas documents:** 34 across eight schema types
 - **Generated Knowledge Base entries:** 21
 
 The Studio exposes the structured Atlas records and their relationships. The public application is the intended inspection path for reports, operational traces, resolved sources, and replay evidence.

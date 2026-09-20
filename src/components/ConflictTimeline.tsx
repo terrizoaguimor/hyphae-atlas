@@ -41,11 +41,11 @@ export function ConflictTimeline({locale}: {locale: Locale}) {
   const copy = content[locale];
   useEffect(() => {if (detailRef.current && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) gsap.fromTo(detailRef.current, {y: 10}, {y: 0, duration: .45, ease: "power2.out", clearProps: "transform"});}, [active, locale]);
   return (
-    <section className="conflict-story" id="conflict-story">
+    <section className="conflict-story" id="conflict-story" tabIndex={-1} data-active-index={active}>
       <div className="conflict-story-intro"><p className="eyebrow">{copy.eyebrow}</p><h2>{copy.title}</h2><p>{copy.body}</p></div>
       <div className="timeline-shell">
         <div className="timeline-track" role="group" aria-label={locale === "es" ? "Cronología de evidencia" : "Evidence timeline"}>{copy.sources.map((source, index) => <button type="button" aria-pressed={active === index} className={active === index ? "active" : ""} onClick={() => setActive(index)} key={source.path}><span>{index + 1}</span><small>{source.date}</small><strong>{source.stage}</strong></button>)}</div>
-        <div className="timeline-detail" ref={detailRef}><div><p className="eyebrow">{copy.sources[active].rank}</p><h3>{copy.sources[active].title}</h3><p>{copy.sources[active].body}</p><code>{copy.sources[active].path}</code></div><span className={`timeline-state state-${active}`}>{active === 0 ? "HISTORICAL" : active === 1 ? "CURRENT" : "SCOPED"}</span></div>
+        <div className="timeline-detail" ref={detailRef}><div><p className="eyebrow">{copy.sources[active].rank}</p><h3>{copy.sources[active].title}</h3><p>{copy.sources[active].body}</p><code>{copy.sources[active].path}</code></div><span className={`timeline-state state-${active}`}>{locale === "es" ? active === 0 ? "HISTÓRICO" : active === 1 ? "VIGENTE" : "ACOTADO" : active === 0 ? "HISTORICAL" : active === 1 ? "CURRENT" : "SCOPED"}</span></div>
         <div className="conflict-resolution"><div><p className="eyebrow">{copy.resolution}</p><strong>{copy.verdict}</strong></div><div><p className="eyebrow">{copy.why}</p><span>{copy.whyBody}</span></div></div>
       </div>
     </section>

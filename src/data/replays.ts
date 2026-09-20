@@ -1,14 +1,17 @@
+import {z} from "zod";
 import data from "./replays.json";
 import type {Locale} from "@/agent/modes";
-import type {AgentResult, AtlasQuery, QueryMode} from "@/agent/report-schema";
+import {agentResultSchema, atlasQuerySchema, queryModeSchema, type QueryMode} from "@/agent/report-schema";
 
-type Replay = {label: string; query: AtlasQuery; result: AgentResult};
-type ReplayData = {version: number; generatedAt: string; replays: Record<string, Replay>};
-const replayData = data as unknown as ReplayData;
+const replaySchema = z.object({label: z.string().min(1), query: atlasQuerySchema, result: agentResultSchema}).strict();
+export const replayDataSchema = z.object({version: z.literal(1), generatedAt: z.string().datetime(), replays: z.record(z.string(), replaySchema)}).strict();
+const replayData = replayDataSchema.parse(data);
+type Replay = z.infer<typeof replaySchema>;
 
 export function getReplay(locale: Locale, mode: QueryMode): Replay {
-  const replay = replayData.replays[`${locale}.${mode}`];
-  if (!replay) throw new Error(`Replay not found for ${locale}.${mode}`);
+  const validatedMode = queryModeSchema.parse(mode);
+  const replay = replayData.replays[`${locale}.${validatedMode}`];
+  if (!replay) throw new Error(`Replay not found for ${locale}.${validatedMode}`);
   return replay;
 }
 

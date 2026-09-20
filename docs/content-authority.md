@@ -31,3 +31,8 @@ Atlas must preserve both claims when sources differ, identify their scopes, and 
 - Single-node local-first is not replication, clustering, or distributed execution.
 - Virtualized operational evidence is not portable, dedicated-hardware, or universal latency certification.
 - A roadmap or candidate runtime is not a published feature.
+
+
+## Human conflict adjudications
+
+A `conflictAdjudication` is a human-reviewed, source-linked authority decision. It may resolve precedence only within its declared domain, version, environment, and applicability rows; it cannot generalize a scoped gate or receipt into a portable claim. The G7 adjudication preserves the historical baseline, treats current gate evidence as authority for closure, treats the 3.0.0 receipt as scoped G8 release evidence, and rejects portable or dedicated-hardware latency certification.

@@ -24,17 +24,18 @@ function localizedDetail(step: AgentResult["trace"][number], result: AgentResult
   return "Validated the JSON schema and per-finding source resolution. This is not independent factual validation of the verdict.";
 }
 
-export function TracePanel({result, locale}: {result: AgentResult; locale: Locale}) {
-  const [open, setOpen] = useState(false);
+export function TracePanel({result, locale, open: controlledOpen, defaultOpen = false, onOpenChange}: {result: AgentResult; locale: Locale; open?: boolean; defaultOpen?: boolean; onOpenChange?: (open: boolean) => void}) {
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const open = controlledOpen ?? internalOpen;
   const contentRef = useRef<HTMLDivElement>(null);
   const labels = copy[locale];
   function toggle() {
-    const next = !open; setOpen(next);
+    const next = !open; if (controlledOpen === undefined) setInternalOpen(next); onOpenChange?.(next);
     if (next && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) window.requestAnimationFrame(() => contentRef.current && gsap.fromTo(contentRef.current, {height: 0, opacity: 0}, {height: "auto", opacity: 1, duration: .55, ease: "power3.out"}));
   }
   const entries = [...new Set(result.trace.flatMap((step) => step.entries ?? []))];
   return (
-    <section className={`trace-panel ${open ? "is-open" : ""}`}>
+    <section className={`trace-panel ${open ? "is-open" : ""}`} id="trace" tabIndex={-1} data-open={open ? "true" : "false"}>
       <button type="button" className="trace-toggle" onClick={toggle} aria-expanded={open}><div><p className="eyebrow">{labels.eyebrow}</p><h3>{labels.title}</h3></div><span>{open ? labels.hide : labels.show}<i aria-hidden="true">{open ? "−" : "+"}</i></span></button>
       {open ? <div className="trace-content" ref={contentRef}>
         <div className="trace-metrics"><div><span>{labels.tools}</span><strong>{result.retrieval.toolsUsed.join(" · ") || "—"}</strong></div><div><span>{labels.entries}</span><strong>{entries.length}</strong></div><div><span>{labels.model}</span><strong>{result.retrieval.model}</strong></div><div><span>{labels.duration}</span><strong>{(result.retrieval.durationMs / 1000).toFixed(1)}s</strong></div></div>

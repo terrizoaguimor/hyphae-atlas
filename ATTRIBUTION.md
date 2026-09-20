@@ -25,3 +25,8 @@ Every imported `sourceDocument` stores its source URL, repository path, commit, 
 Hyphae itself is preexisting work. Hyphae Atlas adds a new Sanity model, import pipeline, Knowledge Base-oriented authority system, agent runtime, interface, evaluation protocol, and submission documentation. No claim is made that the Hyphae engine was built for the challenge.
 
 No binary compatibility fixtures, private data directories, environment files, credentials, or local build artifacts are copied into the challenge corpus.
+
+
+## Snapshot pinning
+
+The manifest owns the reviewed import pin. Import and lexical-ablation code reads each allowlisted path from that Git object, so a newer local checkout HEAD or uncommitted working-tree change cannot be mislabeled as the imported snapshot. G7 adjudication source digests are independently checked against those pinned bytes before import.

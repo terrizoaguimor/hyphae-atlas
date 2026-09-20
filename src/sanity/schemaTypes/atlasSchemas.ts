@@ -13,14 +13,14 @@ export const sourceDocument = defineType({
     defineField({name: "title", type: "string", validation: (rule) => rule.required()}),
     defineField({name: "sourcePath", type: "string", validation: (rule) => rule.required()}),
     defineField({name: "sourceUrl", type: "url", validation: (rule) => rule.required()}),
-    defineField({name: "sourceRef", type: "string", validation: (rule) => rule.required()}),
-    defineField({name: "sourceCommit", type: "string", validation: (rule) => rule.required()}),
-    defineField({name: "contentDigest", type: "string", validation: (rule) => rule.required()}),
+    defineField({name: "sourceRef", type: "string", validation: (rule) => rule.required().regex(/^[a-f0-9]{40}$/)}),
+    defineField({name: "sourceCommit", type: "string", validation: (rule) => rule.required().regex(/^[a-f0-9]{40}$/)}),
+    defineField({name: "contentDigest", type: "string", validation: (rule) => rule.required().regex(/^[a-f0-9]{64}$/)}),
     defineField({name: "format", type: "string", options: {list: ["markdown", "json", "yaml"]}}),
     defineField({name: "documentKind", type: "string"}),
     defineField({name: "content", type: "text", rows: 24, validation: (rule) => rule.required()}),
     defineField({name: "license", type: "string", validation: (rule) => rule.required()}),
-    defineField({name: "authorityDomains", type: "array", of: [{type: "string"}]}),
+    defineField({name: "authorityDomains", type: "array", of: [{type: "string"}], validation: (rule) => rule.required().min(1)}),
     defineField({name: "authorityRank", type: "number", validation: (rule) => rule.required().min(0).max(100)}),
     defineField({
       name: "lifecycleStatus",
@@ -28,7 +28,7 @@ export const sourceDocument = defineType({
       options: {list: ["published", "historical", "unreleased", "draft"], layout: "radio"},
       validation: (rule) => rule.required(),
     }),
-    defineField({name: "versionScope", type: "array", of: [{type: "string"}]}),
+    defineField({name: "versionScope", type: "array", of: [{type: "string"}], validation: (rule) => rule.required().min(1)}),
     defineField({name: "lastVerifiedAt", type: "datetime", validation: (rule) => rule.required()}),
   ],
   preview: {select: {title: "title", subtitle: "sourcePath", status: "lifecycleStatus"}, prepare: ({title, subtitle, status}) => ({title, subtitle: `${status} · ${subtitle}`})},
@@ -123,6 +123,41 @@ export const evidenceArtifact = defineType({
   ],
 });
 
+export const conflictAdjudication = defineType({
+  name: "conflictAdjudication",
+  title: "Conflict adjudication",
+  type: "document",
+  fields: [
+    defineField({name: "title", type: "string", validation: (rule) => rule.required()}),
+    defineField({name: "domain", type: "string", validation: (rule) => rule.required()}),
+    defineField({name: "question", type: "text", rows: 4, validation: (rule) => rule.required()}),
+    defineField({name: "status", type: "string", options: {list: ["resolved", "superseded"]}, validation: (rule) => rule.required()}),
+    defineField({name: "humanReviewed", type: "boolean", initialValue: true, validation: (rule) => rule.required().custom((value) => value === true || "A human review is required")}),
+    defineField({name: "reviewedAt", type: "date", validation: (rule) => rule.required()}),
+    defineField({name: "reviewer", type: "string", validation: (rule) => rule.required()}),
+    defineField({name: "policyVersion", type: "string", validation: (rule) => rule.required()}),
+    defineField({name: "decisionDigest", type: "string", readOnly: true, validation: (rule) => rule.required().regex(/^[a-f0-9]{64}$/)}),
+    defineField({name: "corpusCommit", type: "string", readOnly: true, validation: (rule) => rule.required().regex(/^[a-f0-9]{40}$/)}),
+    defineField({name: "corpusDocumentCount", type: "number", readOnly: true, validation: (rule) => rule.required().integer().min(1)}),
+    defineField({name: "corpusSnapshotDigest", type: "string", readOnly: true, validation: (rule) => rule.required().regex(/^[a-f0-9]{64}$/)}),
+    defineField({name: "resolution", type: "text", rows: 8, validation: (rule) => rule.required()}),
+    defineField({name: "versionScope", type: "array", of: [{type: "string"}], validation: (rule) => rule.required().min(1)}),
+    defineField({name: "environmentScope", type: "array", of: [{type: "string"}], validation: (rule) => rule.required().min(1)}),
+    defineField({name: "historicalSources", type: "array", of: [sourceReference], validation: (rule) => rule.required().min(1)}),
+    defineField({name: "authoritativeSources", type: "array", of: [sourceReference], validation: (rule) => rule.required().min(1)}),
+    defineField({name: "scopedSources", type: "array", of: [sourceReference], validation: (rule) => rule.required().min(1)}),
+    defineField({name: "applicability", type: "array", validation: (rule) => rule.required().min(1), of: [{type: "object", name: "applicabilityDecision", fields: [
+      defineField({name: "id", type: "string", validation: (rule) => rule.required()}),
+      defineField({name: "claim", type: "text", rows: 3, validation: (rule) => rule.required()}),
+      defineField({name: "decision", type: "string", options: {list: ["supported", "unsupported", "not-established"]}, validation: (rule) => rule.required()}),
+      defineField({name: "scope", type: "string", validation: (rule) => rule.required()}),
+      defineField({name: "rationale", type: "text", rows: 4, validation: (rule) => rule.required()}),
+      defineField({name: "sources", type: "array", of: [sourceReference], validation: (rule) => rule.required().min(1)}),
+    ]}]}),
+  ],
+  preview: {select: {title: "title", subtitle: "status"}},
+});
+
 export const publicContract = defineType({
   name: "publicContract",
   title: "Public contract",
@@ -139,4 +174,4 @@ export const publicContract = defineType({
   ],
 });
 
-export const atlasSchemas = [sourceDocument, hyphaeRelease, capability, compatibilityRule, productClaim, evidenceArtifact, publicContract];
+export const atlasSchemas = [sourceDocument, hyphaeRelease, capability, compatibilityRule, productClaim, evidenceArtifact, conflictAdjudication, publicContract];

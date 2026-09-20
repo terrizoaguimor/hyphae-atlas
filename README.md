@@ -2,7 +2,7 @@
 
 A version-aware migration, capability, and product-claim agent powered by structured Hyphae content, Sanity Context, and a pluggable model provider.
 
-> **Current status:** the application, Sanity schema, corpus importer, structured dataset, provider-agnostic runtime, UI, Knowledge Base, Context MCP, and evaluation harness are implemented. The hosted demo uses xAI, while self-hosters may select OpenAI, Anthropic, or any HTTPS OpenAI-compatible endpoint. The final strict baseline passed all 12 cases in one uninterrupted run.
+> **Current status:** the application, eight-type Sanity schema, pinned 34-document dataset, 21-entry Knowledge Base, provider-agnostic Context MCP runtime, bilingual UI, six replays, reviewed three-arm ablation, replay-only Judge Mode, and accessible 27-second walkthrough are complete. The hosted demo uses xAI, while self-hosters may select OpenAI, Anthropic, or any HTTPS OpenAI-compatible endpoint. The final post-adjudication production baseline passed all 12 cases in one uninterrupted run with zero retries.
 
 ## What Atlas does
 
@@ -129,8 +129,9 @@ npm run corpus:verify
 
 The importer:
 
-- accepts only paths declared in `corpus/manifest.json`;
-- rejects sources outside the configured Hyphae root;
+- accepts only paths declared in `corpus/manifest.json` at its required reviewed commit pin;
+- reads exact Git-object bytes rather than mutable checkout HEAD or working-tree files;
+- rejects a `HYPHAE_SOURCE_COMMIT` override unless it equals the manifest pin;
 - computes SHA-256 digests;
 - creates deterministic IDs under `hyphaeAtlas.*`;
 - uses idempotent `createOrReplace` mutations;
@@ -163,6 +164,11 @@ The gold corpus contains 12 cases across migration, capability, and claim auditi
 npm run evaluate -- --smoke
 npm run evaluate
 npm run evaluate -- --case=claim-g7-portable-latency
+npm run evaluate:ablation:verify
+# Expensive and remote; requires a reviewed 34-document corpus/Knowledge Base receipt:
+npm run evaluate:ablation -- --snapshot-receipt=evaluation/context-snapshot.receipt.json
+# Human review and explicit promotion are separate; the runner never updates public metrics:
+npm run evaluate:ablation:promote -- --file=evaluation/results/ablation/<candidate>.json --reviewer="<name>"
 ```
 
 Run the full evaluation only after Context MCP is configured so the final results measure the challenge architecture rather than preview retrieval.
@@ -186,6 +192,11 @@ Run the full evaluation only after Context MCP is configured so the final result
 | `npm run cancellation:smoke` | Verify abort propagation and concurrency-slot release |
 | `npm run replays:capture` | Capture six real EN/ES Context runs for instant replay |
 | `npm run evaluate` | Run the gold evaluation corpus |
+| `npm run evaluate:ablation:verify` | Verify pending public data or recompute a timestamped candidate from raw observations |
+| `npm run evaluate:ablation` | Run the expensive three-arm evaluation with a reviewed Context snapshot receipt; writes candidates only |
+| `npm run evaluate:ablation:promote` | Re-verify and explicitly promote a reviewed full candidate without raw model output |
+| `npm run demo:policy:smoke` | Verify the recorder permits only loopback GET/HEAD traffic |
+| `npm run demo:record` | Record URL-backed Judge Mode with pinned playwright-core, system Chromium, and fail-closed request policy |
 
 ## Security
 
@@ -240,3 +251,10 @@ Runtime secrets must be added with `wrangler secret put`; never pass the offline
 Every fresh live model query on the Cloudflare deployment requires a single-use Turnstile token bound to action `atlas-query` and hostname `atlas.terrizoaguimor.dev`. Instant replays require no challenge and no model credits. Server validation checks success, action, hostname, age, and optional Cloudflare client IP before any model budget is consumed.
 
 Additional controls include strict same-origin POSTs, CSP/HSTS/security headers, Cloudflare native rate limits, in-process client/global quotas, two-request concurrency, streaming body limits, provider/Context/global deadlines, and fail-closed missing bindings or secrets.
+
+
+## Judge Mode and demo recording
+
+Open `http://localhost:3000/?judge=conflict&locale=en` (or `es`). The `judge` query is a closed enum: `conflict`, `report`, `proof`, or `evaluation`. Judge Mode always loads the checked-in claim replay, removes live transitions, disables verification POSTs, and fetches the semantic G7 applicability matrix from `GET /api/adjudications/g7`. Until the new schema and corpus are imported, the UI deliberately shows an unavailable adjudication state.
+
+After `npm run build` passes, start the built app and run `npm run demo:record`. Set `CHROMIUM_PATH` if Chromium is not in a standard system location. The generated WebM stays in ignored `artifacts-local/`; reviewed EN/ES caption sources are in `public/demo/`. The recorder fails on browser POSTs and, by default, on a missing persisted adjudication.

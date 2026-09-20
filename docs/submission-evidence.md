@@ -9,9 +9,9 @@ Updated: 2026-09-18
 - Project token write: temporary namespaced document created and removed, HTTP 200 both ways.
 - Schema validation: 0 errors, 0 warnings.
 - Schema deployment: 1/1 schemas deployed.
-- Corpus dry run: 20 source records + 13 structured records.
-- Corpus import: completed twice with stable IDs and totals.
-- Remote corpus verification: 33 Atlas documents, all expected types present, no missing or invalid sources, no smoke records.
+- Corpus dry run: 20 source records + 14 structured records.
+- Corpus import: deterministic 34-document production snapshot verified after rebuild.
+- Remote corpus verification: 34 Atlas documents across eight expected types, all sources pinned and valid, no smoke records.
 - Existing content preservation: non-Atlas count stable during imports.
 - Configured xAI demo provider: authentication, model access, and synthesis verified.
 - Provider adapters: mocked transport/auth smoke passes for xAI, OpenAI, Anthropic, and OpenAI-compatible APIs.
@@ -36,7 +36,7 @@ Sanity Studio/CLI is isolated in `devDependencies`. Its transitive development g
 
 - Atlas owns the MCP loop and exposes `initial_context` and `knowledge_base_read` in its operational trace.
 - The selected model provider receives only validated outline paths and retrieved text; it never receives the Context token.
-- The Knowledge Base contains 21 generated entries from 33 Atlas dataset documents.
+- The Knowledge Base contains 21 generated entries from 34 Atlas dataset documents.
 - Context smoke passes and observes both required tools.
 - The final strict 12-case corpus passed in one uninterrupted run with zero failures.
 
@@ -92,3 +92,15 @@ Sanity Studio/CLI is isolated in `devDependencies`. Its transitive development g
 - Cloudflare bindings: six agent queries/minute and thirty evidence checks/minute per location.
 - Same-origin POST enforcement plus hardened compatibility CSP, HSTS, and browser security headers.
 - Public replays remain instant and free; only fresh live model queries require Turnstile.
+
+
+## Competitive upgrade completion
+
+- Production corpus: 20 pinned source documents + 14 structured records = 34 Atlas documents across eight types.
+- Knowledge Base: rebuilt successfully with 21 generated entries and the G7 adjudication included in the `performance` entry.
+- Human adjudication: `hyphaeAtlas.adjudication.g7-closure-portability`, digest-checked against historical, current-authority, claims-authority, and scoped release sources.
+- Frozen reviewed ablation: Structured Context 11/12 strict evidence passes, exact lexical retrieval 6/12, and pass-ineligible no-evidence control 0/12. Both retrieval arms matched 12/12 accepted verdicts; resolution policies are explicitly different and labeled.
+- Production regression after the resolver update: 12/12, 12 attempts, zero retries, 100% required-source/term/citation/tool coverage, zero affirmative prohibited assertions.
+- Judge Mode: URL-backed, replay-only EN/ES flow with adjudication matrix, Proof Path, Evaluation Lab, accessible 26.88-second WebM, poster, captions, and transcript.
+- Recorder policy: loopback GET/HEAD only, service workers blocked, zero disallowed requests observed.
+- No DEV API operation was performed for these upgrades; publication remains manual.
