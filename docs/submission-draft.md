@@ -1,127 +1,202 @@
 *This is a submission for the [Sanity Challenge, Path One: Ship an Agent That Queries Real Content](https://dev.to/challenges/sanity-2026-09-16)*
 
-# Hyphae Atlas: evidence before assertion
-
 ## What I Built
 
-Hyphae Atlas is a version-aware agent for migration safety, capability inspection, and technical claim auditing. It answers questions about Hyphae, a local-first data engine whose documentation spans releases, normative specifications, machine contracts, compatibility fixtures, gates, receipts, current product guidance, and unreleased work.
+Hyphae Atlas is an evidence agent that answers a deliberately difficult class of engineering question: **is this migration, capability statement, or product claim actually supported for the exact release and environment being discussed?**
 
-A keyword match is not enough in this domain. A correct answer may depend on an exact release, source commit, protocol minor, API surface, lifecycle state, or benchmark environment. Atlas returns a structured verdict with applicability, findings, qualifiers, conflicts, limitations, recommended actions, and a source ledger.
+The subject is [Hyphae](https://github.com/Hyphae-Research-Foundation/hyphae), a local-first data engine. Its public documentation includes release receipts, normative specifications, machine-readable contracts, compatibility fixtures, benchmark gates, current product guidance, historical plans, and unreleased work. Those sources are individually useful, but a keyword match across them is not enough. A fluent answer can still be wrong if it silently mixes releases, treats a historical target as current status, or promotes an unreleased contract to a shipped feature.
 
-The three workflows are:
+Atlas turns that documentation into three focused workflows:
 
-- **Migration Advisor** — checks upgrade and import paths without inventing downgrade guarantees.
-- **Capability Inspector** — verifies support, bounds, protocol surfaces, and required authority.
-- **Claim Auditor** — decides whether product wording is supported, conditional, prohibited, or unproven.
+- **Migration Advisor** checks upgrade and import paths, required steps, compatibility boundaries, and explicit non-guarantees.
+- **Capability Inspector** verifies whether a capability exists for the named release and surface, including protocol and environment qualifiers.
+- **Claim Auditor** tests public wording against authoritative evidence and classifies it as supported, conditional, prohibited, or unproven.
 
-The interface is available in English and Spanish, including the model-generated report. A guided example gallery explains the decision each mode resolves, contextual tooltips define MCP, Knowledge Bases, verdicts, qualifiers, and source ledgers, and a Three.js/GSAP evidence graph visualizes the actual Sources → Knowledge Base → Context MCP → Model → Verdict flow. During long calls, the UI narrates the agent stages instead of showing an unexplained spinner.
+Each response is a structured report rather than a chat paragraph. It contains a verdict, applicability, findings, qualifiers, conflicts, limitations, recommended actions, and an evidence ledger. Every finding must resolve to content actually retrieved from Sanity Context before Atlas will expose an upstream link.
 
-To make the demo usable without waiting for a model call, I captured six unedited live Context runs: three modes in English and Spanish. Users can open an instant replay or switch to a fresh live run. Every replay retains its capture time, tool trace, Knowledge Base entry paths, verdict, and resolved evidence.
+The interface is available in English and Spanish, including generated reports. It includes guided examples, term-level tooltips, an operational MCP trace, an interactive conflict timeline, an Evaluation Lab, and a Three.js/GSAP graph showing the real flow from sources to the Sanity Knowledge Base, Context MCP, configured model, and verdict. Long-running live requests display the current agent stage instead of an unexplained spinner.
 
-Hyphae and its documentation existed before this challenge. I built the Sanity model, ingestion pipeline, Knowledge Base authority policy, agent runtime, interface, evaluation corpus, and submission workflow for this project.
+There are also six immediate replays: migration, capability, and claim audits in both languages. These are preserved live Context runs, not hand-written sample answers. Each replay retains its capture time, retrieved Knowledge Base paths, four-stage trace, report, and resolved source provenance. Visitors can inspect those without spending model budget, then choose a fresh live query if they want to exercise the complete path.
+
+Hyphae and its source documentation existed before this challenge. For the challenge, I built the Sanity content model, deterministic ingestion pipeline, authority and lifecycle policy, Knowledge Base, backend-owned MCP agent loop, evidence resolver, bilingual application, replay system, evaluation corpus, Cloudflare deployment, and abuse controls.
 
 ## Demo
 
-<!-- Replace before publishing -->
+**Live application:** [atlas.terrizoaguimor.dev](https://atlas.terrizoaguimor.dev)
 
-- Live application: `https://atlas.terrizoaguimor.dev`
-- Video walkthrough: `<VIDEO_URL>`
+A useful first route through the demo is:
 
-The walkthrough demonstrates a Native 2.x → 3.0 migration question, rejects a dedicated-hardware latency claim that overstates G7, and distinguishes an unreleased Agent Memory candidate from the published 3.0.0 binaries.
+1. Open the Native 2.x to 3.0 migration replay and inspect why the answer separates supported import behavior from guarantees the sources do not make.
+2. Open the G7 claim replay and compare the historical target, current gate status, and scoped 3.0.0 release receipt.
+3. Use **Proof Path** on any finding to follow its Knowledge Base citation to a commit-pinned source with digest and lifecycle metadata.
+4. Run **Verify SHA-256** to compare the imported digest with bytes fetched from the allowlisted upstream repository.
+5. Open the Evaluation Lab to inspect the final 12-case baseline and its acceptance criteria.
+
+Fresh live queries use the hosted xAI/Grok 4.6 synthesis provider and require a managed Turnstile check. The six evidence-rich replays remain immediate and challenge-free.
 
 ## Code
 
-<!-- Replace before publishing -->
+**Repository:** [github.com/terrizoaguimor/hyphae-atlas](https://github.com/terrizoaguimor/hyphae-atlas)
 
-Repository: https://github.com/terrizoaguimor/hyphae-atlas
+The repository includes:
 
-The repository includes the Sanity schemas, a closed-world corpus manifest, an idempotent importer, provider-agnostic Context integration, strict output validation, the web interface, 12 gold evaluation cases, and reproducible setup documentation.
+- all seven Sanity schema types;
+- the closed-world source manifest and idempotent importer;
+- the backend-owned Sanity Context client and provider adapters;
+- strict report-schema and citation-grounding validation;
+- the deterministic evidence resolver and SHA-256 verification endpoint;
+- the bilingual Next.js interface and replay data;
+- 12 gold evaluation cases and the audited baseline summary;
+- security smoke tests and a clean-room Cloudflare deployment script.
+
+The implementation paths that best explain the agent are `src/agent/context-client.ts`, `src/agent/provider-agent.ts`, `src/agent/evidence-resolver.ts`, and `src/app/api/agent/route.ts`. The corpus and final evaluation are reproducible from the scripts documented in the repository.
 
 ## How I Used Sanity
 
-I modeled seven related document types in Sanity:
+Sanity is not a passive CMS in this project. It is the structured evidence layer that makes the verdicts possible.
 
-- source documents with path, commit, digest, license, lifecycle, authority domains, and version scope;
-- Hyphae releases;
-- capabilities;
-- compatibility rules;
-- product claims and non-claims;
-- evidence artifacts;
-- public API/MCP contracts.
+### A content model for authority, applicability, and provenance
 
-The initial corpus contains 20 curated public sources and 13 additional structured records. Sources include canonical claim language, the Native capability matrix, SQL and MVCC contracts, directory migration semantics, the Native MCP contract, access control, compatibility fixtures, gate status, and the exact 3.0.0 publication receipt.
+I modeled seven related document types:
 
-The importer uses deterministic `hyphaeAtlas.*` IDs, SHA-256 content digests, commit-pinned source URLs, idempotent upserts, and a guard that verifies non-Atlas document counts remain unchanged. Running it twice produced the same 33 Atlas documents.
+1. **Source documents** store repository path, source commit, SHA-256 digest, license, lifecycle, authority domains, and version scope.
+2. **Hyphae releases** identify concrete release boundaries.
+3. **Capabilities** describe support with explicit applicability.
+4. **Compatibility rules** encode supported transitions and constraints.
+5. **Product claims** preserve canonical claims and non-claims.
+6. **Evidence artifacts** represent gates, fixtures, and release evidence.
+7. **Public contracts** capture API and MCP surfaces.
 
-I pointed Sanity Context at this structured dataset and built the Hyphae Atlas Knowledge Base with this purpose:
+The imported corpus contains 20 curated public source documents and 13 additional structured records, for 33 namespaced Atlas documents in the `production` dataset. The sources cover claim language, the Native capability matrix, SQL and MVCC contracts, directory migration semantics, the Native MCP contract, access control, compatibility fixtures, current gate status, and the exact Hyphae 3.0.0 publication receipt.
+
+The importer uses deterministic `hyphaeAtlas.*` IDs, commit-pinned source URLs, SHA-256 content digests, and idempotent upserts. It also records the non-Atlas document count before and after import so that a corpus refresh cannot silently replace unrelated content. A repeated import produced the same IDs and totals.
+
+### A Sanity Context Knowledge Base with an explicit job
+
+I built the **Hyphae Atlas** Knowledge Base with this purpose:
 
 > Help Hyphae users, maintainers, and auditors determine whether a migration, capability, or technical claim is valid for an exact release, protocol surface, and evidence scope.
 
-Atlas uses the Knowledge Base-mode tools:
+The build generated 21 Knowledge Base entries from the 33 Atlas documents. Atlas uses both required Knowledge Base-mode tools:
 
-1. `initial_context` to orient on the generated outline.
-2. `knowledge_base_read` to retrieve the smallest sufficient set of relevant entries, batching related evidence when possible.
+1. `initial_context` reads the generated outline.
+2. `knowledge_base_read` retrieves the smallest sufficient set of relevant entries, batching related evidence where possible.
 
-The agent treats retrieved content as data rather than instructions. Its authority rules distinguish published, historical, and unreleased material; use canonical claims for public wording; use machine contracts for API behavior; preserve benchmark environment and commit qualifiers; and return `unknown` or `unproven` when the sources cannot support a safe answer.
+The authority policy is as important as retrieval. Atlas distinguishes published, historical, and unreleased material; prefers current gate records for gate status; uses release receipts for what a release actually proves; uses machine contracts for API behavior; preserves benchmark environment and commit qualifiers; and returns `unknown` or `unproven` when the evidence cannot support a safe affirmative answer.
 
-### Provider-agnostic agent loop
+### The provider-agnostic agent loop
 
-Atlas owns the MCP workflow instead of delegating it to a provider-specific connector. It calls `initial_context`, asks the configured model to select 1–8 paths, validates every path against the live outline, calls `knowledge_base_read` itself, and then asks the model to synthesize the structured report. The same interface supports xAI, OpenAI, Anthropic, and HTTPS OpenAI-compatible APIs. The hosted demo uses xAI, but the Sanity flow, trace, grounding, and evaluation do not depend on xAI.
+Atlas owns the MCP workflow on the server instead of delegating it to a provider-specific remote connector:
 
-### Proof Path: from citation to immutable source
+1. The backend calls `initial_context`.
+2. The configured model selects between one and eight relevant outline paths.
+3. Atlas rejects any selected path that is not present in that live outline.
+4. The backend calls `knowledge_base_read` for the validated paths.
+5. The model receives those retrieved entries and produces a schema-constrained report.
+6. Atlas checks every finding citation against the exact retrieved text, then resolves trusted provenance through Sanity relationships.
 
-Knowledge Base citations are intentionally source-aware but may arrive as internal labels such as `Native gate status — Dataset`. After the configured model returns a schema-valid report, a deterministic resolver follows the Sanity document relationships and Knowledge Base entry paths to the original `sourceDocument` records. The final UI shows the public GitHub URL, exact commit, SHA-256 digest, license, lifecycle state, and authority rank.
+This boundary keeps the Sanity Context credential away from the model provider and makes the tool trace consistent across adapters. Atlas supports xAI, OpenAI, Anthropic, and HTTPS OpenAI-compatible APIs. The hosted demo and final live 12-case baseline use xAI/Grok 4.6. The other adapters passed mocked authentication, transport, and payload smoke tests; I am not presenting those as live-provider evaluations.
 
-The **Verify SHA-256** action accepts only a namespaced Sanity source ID. The server reloads trusted provenance from Sanity, constructs an allowlisted `raw.githubusercontent.com/Hyphae-Research-Foundation/hyphae` URL, downloads bounded bytes, and compares the actual digest with the imported digest. A live verification of `docs/gates/native-gate-status.md` passed byte for byte.
+### Proof Path: citation to immutable upstream evidence
 
-### Visible agent trace
+A Knowledge Base citation may be an internal label such as `Native gate status — Dataset`. That label alone should not become a clickable source.
 
-Every result exposes an operational trace—not private chain of thought—with four stages:
+After synthesis, the deterministic Evidence Resolver requires the citation to have appeared in the actual `knowledge_base_read` output. It then follows the known Knowledge Base entry and Sanity document relationships to the canonical `sourceDocument`. Only resolver-owned URLs are rendered. Model-provided URLs never become links.
 
-1. `initial_context`: orient on the live Knowledge Base outline.
-2. `knowledge_base_read`: list the exact generated entry paths consulted.
-3. `evidence_resolver`: resolve upstream source documents and provenance.
-4. `schema_validation`: validate the JSON response contract and per-finding source resolution; this is not independent factual validation of the verdict.
+The resulting evidence row exposes:
 
-The interface also includes an interactive timeline for the real G7 historical/current conflict and a public Evaluation Lab covering all 12 scenarios.
+- the original public GitHub path;
+- the exact imported commit;
+- expected SHA-256 digest;
+- source license;
+- lifecycle state;
+- authority rank and applicability.
 
-The live Knowledge Base build generated 21 entries. The final strict 12-case run passed without retry: 100% verdict accuracy, exact upstream source coverage, required semantic term coverage, per-finding grounding, and Context tool compliance, with zero affirmative prohibited assertions.
+The **Verify SHA-256** endpoint accepts a namespaced Sanity source ID, reloads trusted provenance from Sanity, constructs an allowlisted `raw.githubusercontent.com/Hyphae-Research-Foundation/hyphae` URL, downloads a bounded response, and compares the bytes with the imported digest. Verification of `docs/gates/native-gate-status.md` matched byte for byte. A regression case using a forged `https://example.invalid/README.md` citation resolves to nothing.
 
-The build also surfaced a real temporal conflict: an older performance-target document said G7 had not closed, while the current gate index and exact release evidence record the closure. I reclassified the target baseline as historical and made current gate/receipt evidence authoritative for closure state.
+### A visible trace without pretending schema validation proves truth
 
-<!-- Add final conflict screenshot and compact evaluation table before publishing. -->
+Every report exposes a four-stage operational trace:
+
+1. `initial_context` — orient on the live Knowledge Base outline.
+2. `knowledge_base_read` — show the exact generated entry paths retrieved.
+3. `evidence_resolver` — map grounded citations to canonical source records.
+4. `schema_validation` — validate the JSON contract and required source resolution.
+
+This is an audit trace, not private chain of thought. The fourth stage confirms structural and grounding rules; it is not independent factual validation of the verdict.
+
+## The Conflict That Changed the Authority Policy
+
+The most useful failure was a real temporal disagreement around Hyphae's G7 performance gate.
+
+The historical document `docs/performance/microsecond-first.md` says G7 had not passed. The current `docs/gates/native-gate-status.md` records G7 as closed. The scoped `docs/release/receipts/3.0.0.md` provides release and G8 evidence, but it does not document a new dedicated-hardware G7 run for Hyphae 3.0.0.
+
+Collapsing those three statements into “3.0.0 has dedicated-hardware latency certification” would be wrong. The safe conclusion is narrower: **G7 is closed according to the current authoritative gate record, but that closure is not portable proof of dedicated-hardware latency for the 3.0.0 release.**
+
+I reclassified the older target document as historical and made current gate records and scoped receipts authoritative for the claims they actually cover. Atlas now shows the disagreement in an interactive timeline rather than silently discarding the older source. This is the kind of distinction I wanted Sanity's structured relationships and Context retrieval to preserve.
+
+## Evaluation
+
+I wrote 12 gold cases across migration, capability, and claim auditing. Acceptance is stricter than checking whether a model emitted valid JSON. A case passes only when all of these hold:
+
+- the verdict is accepted for the scenario;
+- every required upstream source path resolves;
+- all required semantic term groups are present;
+- every finding citation appeared in the actual `knowledge_base_read` output;
+- every finding links to at least one resolved upstream source;
+- no prohibited affirmative assertion appears in visible report fields;
+- both `initial_context` and `knowledge_base_read` appear in the trace.
+
+The final full run used the hosted xAI configuration and completed all cases in one uninterrupted run:
+
+| Metric | Result |
+| --- | ---: |
+| Cases passed | 12 / 12 |
+| Attempts | 12 |
+| Retries | 0 |
+| Verdict accuracy | 100% |
+| Required upstream source coverage | 100% |
+| Required semantic-term coverage | 100% |
+| Per-finding grounding | 100% |
+| Context tool compliance | 100% |
+| Affirmative prohibited assertions | 0 |
+
+The checked-in `evaluation/baseline-summary.json` records the run timestamp, Knowledge Base ID and entry count, exact criteria, and average duration. Earlier development runs exposed timeout, polarity, field-size, and grounding defects; those failures drove the backend-owned MCP and resolver design rather than being hidden behind retries.
+
+## Reliability, Security, and Abuse Controls
+
+The public application runs on Cloudflare Workers through OpenNext at the custom Atlas domain. The deployment is built from a committed clean clone that does not contain `.env`. Before upload, the deployment script scans 1,221 generated OpenNext files against six local secret values; the deployed build had zero matches. Runtime credentials are Cloudflare encrypted secrets, with separate least-privilege roles for reading, importing, and Studio deployment.
+
+Fresh live queries use layered controls:
+
+- managed Turnstile restricted to the exact `atlas.terrizoaguimor.dev` hostname and `atlas-query` action;
+- server-side Siteverify checks for success, action, hostname, age, and single use;
+- Cloudflare rate limits of six agent requests per 60 seconds and 30 evidence checks per 60 seconds per location;
+- same-origin enforcement for POST requests;
+- streaming request-body limits and a five-second body-completion deadline;
+- at most two concurrent model requests per process;
+- 30-second Sanity Context and 180-second provider timeouts inside a 285-second global deadline;
+- cancellation propagation to the provider and Sanity calls;
+- HSTS, no-sniff, frame denial, no-referrer, Permissions Policy, COOP, CORP, and a compatibility CSP that permits the inline behavior required by the current Next.js static hydration while disabling script attributes.
+
+I verified the deployed negative paths as well as the happy path: a missing Turnstile token returns HTTP 403, a cross-origin query returns HTTP 403, and remote SHA verification returns HTTP 200 with matching expected and actual digests. Headless browser inspection confirmed that the Turnstile script, widget shell, hidden response field, and disabled-until-verified submit state load correctly. I did not automate human completion of the managed challenge.
 
 ## Sanity Project Details
 
-- Sanity project ID: `v2ulbd4b`
-- Dataset: `production`
-- Knowledge Base: `Hyphae Atlas`
-- Public dataset URL: `N/A — the required project ID is provided; Atlas path IDs are inspected through the project`
+- **Sanity project ID:** `v2ulbd4b`
+- **Dataset:** `production`
+- **Knowledge Base:** `Hyphae Atlas`
+- **Knowledge Base public ID:** `kbIPW9hgRO17`
+- **Sanity Studio:** [hyphae-atlas-v2ulbd4b.sanity.studio](https://hyphae-atlas-v2ulbd4b.sanity.studio/)
+- **Atlas documents:** 33 across seven schema types
+- **Generated Knowledge Base entries:** 21
 
-The project contains seven Atlas schema types and 33 namespaced documents in the initial corpus build.
+The Studio exposes the structured Atlas records and their relationships. The public application is the intended inspection path for reports, operational traces, resolved sources, and replay evidence.
 
-## Agent Session
+## What I Learned
 
-<!-- Optional: replace after uploading and making the session public. -->
+The hard part was not retrieving more text. It was preserving the boundaries that make text applicable.
 
-Agent session: `<PUBLIC_AGENT_SESSION_URL>`
+A performance number without its environment, a capability without its release, a migration rule without its direction, or an unreleased contract without lifecycle status can all produce a confident but unsafe answer. Sanity gave me a way to model those boundaries as content relationships; Context made them retrievable through a generated outline; the backend-owned agent loop let me enforce what the model was allowed to cite; and the resolver connected each accepted finding back to immutable upstream evidence.
 
-The curated session will show schema construction, safe import, the first provider-backed report, the move to a backend-owned MCP loop, and grounding/evaluation corrections without including API keys or environment values.
-
-## What I learned
-
-The hard part was not retrieval volume. It was preserving applicability. A performance number without its environment, a capability without its release, or an unreleased contract without lifecycle status can all produce a fluent but wrong answer. Modeling those boundaries made the agent more conservative and more useful.
-
-<!-- Add cover image and #sanitychallenge before publishing. -->
-
-
-## Reliability and security details
-
-Atlas does not trust a citation merely because it resembles a real filename. Atlas itself calls `initial_context`, validates the model-selected paths, and calls `knowledge_base_read`. Each finding citation must appear in the exact text returned by that backend-owned read before the resolver follows canonical Sanity relationships to an upstream file. A forged `example.invalid/README.md` citation is covered by a regression check and resolves to nothing.
-
-The final audited provider-agnostic evaluation passed 12/12 cases in one run with 12 attempts and zero retries: 100% verdict accuracy, required upstream source coverage, semantic term coverage, per-finding grounding, and Context tool compliance; no affirmative prohibited assertion passed. Browser cancellation propagates to the selected provider and Sanity, request bodies are bounded while streaming, and production uses separate Context Viewer and project Viewer tokens. Editor and Deploy Studio tokens never belong in the web runtime.
-
-
-### Public demo abuse controls
-
-The Cloudflare deployment makes all six verified replays immediately available without a key or challenge. A fresh live model query requires a managed Turnstile token restricted to the exact Atlas hostname and `atlas-query` action. The server validates the single-use token before consuming model budget. Cloudflare-native rate-limit bindings, same-origin enforcement, CSP/HSTS, streaming input bounds, global deadlines, concurrency slots, and per-process quotas provide additional layers.
+The result is intentionally conservative. Atlas will say `unproven` when a claim outruns its receipts, and it will show exactly which evidence forced that decision. For migration and release work, that is more useful than confidence without provenance.

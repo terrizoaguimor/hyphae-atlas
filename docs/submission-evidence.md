@@ -40,25 +40,27 @@ Sanity Studio/CLI is isolated in `devDependencies`. Its transitive development g
 - Context smoke passes and observes both required tools.
 - The final strict 12-case corpus passed in one uninterrupted run with zero failures.
 
+## DEV draft record
+
+- Exactly one authenticated article-creation request was sent to `POST https://dev.to/api/articles`; no authenticated profile, listing, update, or publication request was made.
+- Article ID: `4696835`.
+- Title: `Hyphae Atlas: An Agent That Won’t Call a Database Migration Safe Without Receipts`.
+- Draft URL: https://dev.to/terrizoaguimor/hyphae-atlas-an-agent-that-wont-call-a-database-migration-safe-without-receipts-3d7g-temp-slug-7971315.
+- The creation request explicitly set `published: false`. DEV omitted the `published` property from its creation response and returned a `temp-slug` path, so the sanitized record preserves both facts instead of claiming the field was echoed.
+- Cover image: https://atlas.terrizoaguimor.dev/opengraph-image.
+- Tags: `sanitychallenge`, `devchallenge`, `ai`, `mcp`.
+- Sanitized response/request metadata is stored in `docs/dev-draft.json`; no API credential is stored there or in the article source.
+
 ## Publication status and remaining actions
 
 - ✅ Knowledge Base built and available in Context.
 - ✅ Repository published at https://github.com/terrizoaguimor/hyphae-atlas.
 - ✅ Replay-ready web application deployed at https://atlas.terrizoaguimor.dev from a secret-scanned OpenNext clean-room build.
-- ⏳ Rotate and configure runtime secrets, then perform the remote live-query smoke.
-- ⏳ Capture the final Knowledge Base/conflict screenshots and demo video.
-- ⏳ Curate and publish an Agent Session after secret review.
-- ⏳ Replace video/session placeholders in `submission-draft.md` and publish the DEV post.
-
-## Evidence to capture manually
-
-- Context Dashboard Knowledge Base purpose and source configuration.
-- Generated outline.
-- A conflict/issue before and after resolution.
-- Sanity Studio relationship view.
-- Live report showing Context MCP tools.
-- Final evaluation summary.
-- Deployment URL and clean-browser walkthrough.
+- ✅ Runtime secrets, remote security checks, and the live provider-backed baseline are complete.
+- ✅ Final placeholder-free submission copy is stored in `docs/submission-draft.md`.
+- ✅ One unpublished DEV draft was created with the required cover and four tags.
+- ⏳ Review the draft in the DEV dashboard and publish it manually only when ready.
+- Optional screenshots, video, and a public Agent Session were not invented or represented by placeholders in the submitted draft.
 
 ## Competitive UX and proof layer
 
